@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
- urlApi: 'http://145.223.120.187:7070/api',
+ urlApi: 'http://renegironsites-001-site6.btempurl.com/api',
   urlPdf: 'http://almacenessancarlos.tipografiacerna.com/documentsbilling/notaenvio',
 
   urlPdfDte: 'http://almacenessancarlos.tipografiacerna.com/dte/documents/dte',  
