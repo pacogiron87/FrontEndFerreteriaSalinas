@@ -1,0 +1,58 @@
+:host {
+  ::ng-deep .p-calendar {
+    min-width: -webkit-fill-available !important;
+  }
+  
+  ::ng-deep .p-autocomplete {
+    width: 100%;
+    display: flex;
+    
+    .p-inputtext {
+      flex: 1;
+      width: 100%;
+      padding: 0.4rem 0.75rem !important;
+      font-size: 0.875rem;
+    }
+    
+    .p-autocomplete-panel {
+      width: auto !important;
+      min-width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      z-index: 1000;
+      
+      .p-autocomplete-items {
+        padding: 0;
+        
+        .p-autocomplete-item {
+          padding: 0.5rem;
+          white-space: normal;
+          word-break: break-word;
+        }
+      }
+    }
+  }
+  
+  // Estilos para el item seleccionado
+  ::ng-deep .code-activity-selected {
+    font-weight: bold;
+    padding: 2px 0;
+  }
+  
+  // Estilos para los items en la lista
+  ::ng-deep .code-activity-item {
+    padding: 4px;
+    
+    &:hover {
+      background-color: #f5f5f5;
+    }
+  }
+  
+  // Asegúrate de que el overlay se posicione correctamente
+  ::ng-deep .p-component-overlay {
+    z-index: 1000;
+  }
+}

@@ -1,0 +1,17 @@
+:host {
+  ::ng-deep .p-calendar .p-inputtext {
+    height: 2.5rem !important;
+  }
+
+  ::ng-deep .p-calendar {
+    min-width: -webkit-fill-available !important;
+  }
+}
+
+#category-label, #location-label {
+  margin-top: 1rem !important;
+}
+
+#category, #location {
+  margin-top: 1rem !important;
+}

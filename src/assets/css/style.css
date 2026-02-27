@@ -1,0 +1,7 @@
+c-sidebar#sidebar {
+    background: #24325e;
+}
+
+.p-input-icon-left > .p-inputtext {
+    padding-left: 2.5rem !important;
+}

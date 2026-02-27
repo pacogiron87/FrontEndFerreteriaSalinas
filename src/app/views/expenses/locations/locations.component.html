@@ -1,0 +1,103 @@
+<!--Notifications-->
+<p-toast></p-toast>
+<!--Table-->
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <em class="fa-solid fa-location-dot"></em> <strong>Localidades</strong>
+      </c-card-header>
+      <c-card-body>
+        <p-table #dt
+                 [loading]="loading"
+                 [value]="locations"
+                 [rowHover]="true"
+                 [paginator]="true"
+                 [rows]="10"
+                 [showCurrentPageReport]="true"
+                 [rowsPerPageOptions]="[10,25,50]"
+                 currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
+                 dataKey="id"
+                 responsiveLayout="scroll"
+                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+                 [globalFilterFields]="['name','description','active']"
+        >
+          <ng-template pTemplate="caption">
+            <div class="d-flex justify-content-between">
+              <button cButton color="dark" (click)="toggleModal()" pTooltip="Agregar localidad" tooltipPosition="right">
+                <em class="fa-solid fa-circle-plus pe-2"></em>Agregar
+              </button>
+              <span class="p-input-icon-left ml-auto">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+                           placeholder="Buscar"/>
+                </span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th scope="col" class="text-center">Opciones</th>
+              <th scope="col" class="text-center" pSortableColumn="name">Nombre
+                <p-sortIcon field="name"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="description">Descripcion
+                <p-sortIcon field="description"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="active">Estado
+                <p-sortIcon field="active"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-location>
+            <tr>
+              <td class="text-center">
+                <button cButton color="warning" size="sm" pTooltip="Editar localidad" tooltipPosition="top"
+                        (click)="toggleModal(location)"><em class="fa-solid fa-pen"></em></button>
+                <button cButton color="danger" size="sm" pTooltip="Desactivar localidad" tooltipPosition="top"
+                        *ngIf="location.active" (click)="changeStatus(location, false)">
+                  <em class="fa-solid fa-trash"></em></button>
+                <button cButton color="info" size="sm" pTooltip="Activar localidad" tooltipPosition="top"
+                        *ngIf="!location.active" (click)="changeStatus(location, true)">
+                  <em class="fa-solid fa-trash-arrow-up"></em></button>
+              </td>
+              <td>{{location.name}}</td>
+              <td>{{location.description === 'null' ? '' : location.description}}</td>
+              <td class="text-center">
+                <c-badge
+                  [color]="utilitiesService.getFromStatus(location.active)">{{utilitiesService.getFromStatus(location.active, statusTypeData.NAME)}}</c-badge>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+<!--Modal-->
+<c-modal alignment="center" [visible]="isModalVisible" (visibleChange)="handleModalChange($event)">
+  <c-modal-header>
+    <h5 cModalTitle>{{modalTitle}}</h5>
+    <button cButtonClose (click)="toggleModal()"></button>
+  </c-modal-header>
+  <c-modal-body [formGroup]="locationForm">
+    <c-row class="mb-3">
+      <label [sm]="3" cCol cLabel="col" for="name">Nombre*:</label>
+      <c-col [sm]="9">
+        <input cFormControl id="name" type="text" placeholder="Nombre" formControlName="name"/>
+        <c-form-feedback [valid]="false">El nombre es obligatorio</c-form-feedback>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <label [sm]="3" cCol cLabel="col" for="description">Descripcion:</label>
+      <c-col [sm]="9">
+        <input cFormControl id="description" type="text" placeholder="Descripcion" formControlName="description"/>
+      </c-col>
+    </c-row>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="toggleModal()"><em class="fa-solid fa-xmark"></em> Cerrar</button>
+    <button cButton color="primary" type="submit" [disabled]="locationForm.invalid" (click)="saveChanges()"><em
+      class="fa-solid fa-floppy-disk"></em> Guardar
+    </button>
+  </c-modal-footer>
+</c-modal>

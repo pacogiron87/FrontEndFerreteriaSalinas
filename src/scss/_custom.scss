@@ -1,0 +1,11 @@
+// Here you can add other styles
+@media print {
+  body[data-pdfjsprinting], html {
+    overflow-y: visible !important;
+    display: inline !important;
+  }
+
+  body[data-pdfjsprinting] {
+    width: 70% !important;
+  }
+}

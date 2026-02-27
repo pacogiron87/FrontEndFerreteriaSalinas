@@ -1,0 +1,163 @@
+<!--Notifications-->
+<p-toast xmlns="http://www.w3.org/1999/html"></p-toast>
+<!--Main form-->
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <em class="fa-solid fa-piggy-bank"></em> <strong>Salidas</strong>
+      </c-card-header>
+      <c-card-body>
+        <!--Table-->
+        <p-table #dt
+                 [loading]="loading"
+                 [value]="outputs"
+                 [rowHover]="true"
+                 [paginator]="true"
+                 [rows]="10"
+                 [showCurrentPageReport]="true"
+                 [rowsPerPageOptions]="[10,25,50]"
+                 sortField="id"
+                 [sortOrder]="-1"
+                 currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
+                 dataKey="id"
+                 responsiveLayout="scroll"
+                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+                 [globalFilterFields]="['name','description','active']"
+                 *ngIf="!isOutputActive && !isSeeDetails"
+        >
+          <ng-template pTemplate="caption">
+            <div class="d-flex justify-content-between">
+              <button cButton color="dark" (click)="newOutput()" pTooltip="Agregar salida" tooltipPosition="right">
+                <em class="fa-solid fa-circle-plus pe-2"></em>Agregar
+              </button>
+              <span class="p-input-icon-left ml-auto">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+                           placeholder="Buscar"/>
+                </span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th scope="col" class="text-center">Opciones</th>
+              <th scope="col" class="text-center" pSortableColumn="created_at">Fecha
+                <p-sortIcon field="created_at"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="amount_output">Monto
+                <p-sortIcon field="amount_output"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="output_type">Tipo
+                <p-sortIcon field="output_type"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="description">Descripción
+                <p-sortIcon field="description"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="output_receiver">Responsable
+                <p-sortIcon field="output_receiver"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="location">Localidad
+                <p-sortIcon field="location"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="comment">Comentarios
+                <p-sortIcon field="comment"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="invoice_status">Estado
+                <p-sortIcon field="active"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-output>
+            <tr>
+              <td class="text-center">
+                <button cButton color="danger" size="sm" pTooltip="Desactivar salida" tooltipPosition="top"
+                        *ngIf="output.active" (click)="changeStatus(output, false)">
+                  <em class="fa-solid fa-trash"></em></button>
+                <button cButton color="info" size="sm" pTooltip="Activar salida" tooltipPosition="top"
+                        *ngIf="!output.active" (click)="changeStatus(output, true)">
+                  <em class="fa-solid fa-trash-arrow-up"></em></button>
+              </td>
+              <td class="text-center">{{utilitiesService.formatDate(output.created_at, 'DD/MM/YYYY')}}</td>
+              <td class="text-center">{{output.amount_output | currency}}</td>
+              <td class="text-center">{{output.output_type}}</td>
+              <td class="text-center">{{output.description}}</td>
+              <td class="text-center">{{output.output_receiver}}</td>
+              <td class="text-center">{{output.location}}</td>
+              <td class="text-center">{{output.comment}}</td>
+              <td class="text-center">
+                <c-badge
+                  [color]="utilitiesService.getFromStatus(output.active)">{{utilitiesService.getFromStatus(output.active, statusTypeData.NAME)}}</c-badge>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+        <!--Sale form-->
+        <form cForm *ngIf="isOutputActive" [formGroup]="outputForm">
+          <c-row class="mb-3">
+            <c-col [sm]="2">
+              <button cButton color="dark" (click)="returnOutputsList()" pTooltip="Regresar al listado de salidas"
+                      tooltipPosition="right">
+                <em class="fa-solid fa-arrow-left"></em> Regresar
+              </button>
+            </c-col>
+          </c-row>
+          <c-row class="mb-3">
+            <c-col [sm]="2">
+              <label cCol cLabel="col" sizing="sm" for="type">Tipo de salida*:</label>
+              <select sizing="sm" aria-label="Tipo de salida" cSelect formControlName="type" id="type">
+                <option *ngFor="let outputType of outputTypes" [ngValue]="outputType">{{outputType.description}}</option>
+              </select>
+              <c-form-feedback [valid]="false">El tipo de salida es obligatoria</c-form-feedback>
+            </c-col>
+            <c-col [sm]="2">
+              <label cCol cLabel="col" sizing="sm" for="amount">Monto*:</label>
+              <input cFormControl sizing="sm" id="amount" type="number" placeholder="Monto de la salida"
+                     formControlName="amount" min="0.01" step="0.01"
+                     pTooltip="Monto mínimo de $0.01" tooltipPosition="bottom"/>
+              <c-form-feedback [valid]="false">El monto es obligatorio</c-form-feedback>
+            </c-col>
+            <c-col [sm]="2">
+              <label cCol sizing="sm" cLabel="col">Localidad*:</label>
+              <select sizing="sm" aria-label="Localidad" cSelect formControlName="location">
+                <option *ngFor="let location of locations" [ngValue]="location">{{location.name}}</option>
+              </select>
+              <c-form-feedback [valid]="false">La localidad es obligatoria</c-form-feedback>
+            </c-col>
+            <c-col [sm]="6">
+              <label cCol sizing="sm" cLabel="col">Responsable*:</label>
+              <input cFormControl id="receiver" type="text" placeholder="Responsable" formControlName="receiver"/>
+              <c-form-feedback [valid]="false">El responsable es obligatorio</c-form-feedback>
+            </c-col>
+          </c-row>
+          <c-row class="mb-3">
+            <c-col [sm]="6">
+              <label cCol cLabel="col" sizing="sm" for="description">Descripción*:</label>
+              <textarea cFormControl sizing="sm" id="description" type="text"
+                        placeholder="Ingrese la descripción"
+                        formControlName="description" rows="2"
+                        pTooltip="Descripción de la salida actual" tooltipPosition="bottom"
+                        style="resize: none;"></textarea>
+              <c-form-feedback [valid]="false">La descripción es obligatoria</c-form-feedback>
+            </c-col>
+            <c-col [sm]="6">
+              <label cCol cLabel="col" sizing="sm" for="comment">Comentarios:</label>
+              <textarea cFormControl sizing="sm" id="comment" type="text"
+                        placeholder="Ingrese los comentarios (opcional)"
+                        formControlName="comment" rows="3"
+                        pTooltip="Comentarios sobre la salida actual (opcional)" tooltipPosition="bottom"
+                        style="resize: none;"></textarea>
+            </c-col>
+          </c-row>
+          <c-row class="mb-3" *ngIf="outputForm.valid">
+            <c-col class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <button cButton color="primary" (click)="completeOutput()" pTooltip="Registrar la salida actual"
+                      tooltipPosition="left">
+                <em class="fa-solid fa-cash-register"></em> Registrar salida
+              </button>
+            </c-col>
+          </c-row>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>

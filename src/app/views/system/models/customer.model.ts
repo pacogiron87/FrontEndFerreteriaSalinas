@@ -1,0 +1,30 @@
+export interface Customer {
+  id: number;
+  name: string;
+  address: string;
+  country?: string;
+  departmentAddress?: string;
+  municipality?: string;
+  dui?: string;
+  nit?: string;
+  nrc?: string;
+  commercialBusiness?: string;
+  codeCommercialBusiness?: string;
+  alias?: string;
+  phoneHome?: string;
+  phoneOffice?: string;
+  mobile?: string;
+  email?: string;
+  isRetentionTax?: boolean;
+  isMajorTaxpayer?: boolean;
+  isBusiness?: boolean;
+  businessName?: string;
+  isMigrated?: boolean;
+  idCustomerMigration?: boolean;
+  createDateMigration?: string;
+  createdBy?: string;
+  createDate?: string;
+  modifiedBy?: string;
+  modifiedDate?: string;
+  status: boolean;
+}

@@ -1,0 +1,280 @@
+<!--Notifications-->
+<p-toast xmlns="http://www.w3.org/1999/html"></p-toast>
+<!--Main form-->
+<c-row ngPreserveWhitespaces>
+  <c-col xs="12">
+    <c-card class="mb-4">
+      <c-card-header>
+        <em class="fa-solid fa-basket-shopping"></em> <strong>Compras</strong>
+      </c-card-header>
+      <c-card-body>
+        <!--Table-->
+        <p-table #dt
+                 [loading]="loading"
+                 [value]="purchases"
+                 [rowHover]="true"
+                 [paginator]="true"
+                 [rows]="10"
+                 [showCurrentPageReport]="true"
+                 [rowsPerPageOptions]="[10,25,50]"
+                 sortField="id"
+                 [sortOrder]="-1"
+                 currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
+                 dataKey="id"
+                 responsiveLayout="scroll"
+                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+                 [globalFilterFields]="['tradename','description','active', 'invoice_format','invoice_number']"
+                 *ngIf="!isPurchaseActive && !isSeeDetails"
+        >
+          <ng-template pTemplate="caption">
+            <div class="d-flex justify-content-between">
+              <button cButton color="dark" (click)="newPurchase()" pTooltip="Agregar compra" tooltipPosition="right">
+                <em class="fa-solid fa-circle-plus pe-2"></em>Agregar
+              </button>
+              <span class="p-input-icon-left ml-auto">
+                    <i class="pi pi-search"></i>
+                    <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+                           placeholder="Buscar"/>
+                </span>
+            </div>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr>
+              <th scope="col" class="text-center">Opciones</th>
+              <th scope="col" class="text-center" pSortableColumn="created_at">Fecha
+                <p-sortIcon field="created_at"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="invoice_total">Importe
+                <p-sortIcon field="total"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="invoice_number">Factura
+                <p-sortIcon field="invoice_number"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="tradename">Nombre comercial
+                <p-sortIcon field="tradename"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="tradename">Nombre de negocio
+                <p-sortIcon field="tradename"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="advance_payment">Tipo de documento
+                <p-sortIcon field="invoice_format"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="location">Localidad
+                <p-sortIcon field="location"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="comment">Observacion
+                <p-sortIcon field="comment"></p-sortIcon>
+              </th>
+              <th scope="col" class="text-center" pSortableColumn="invoice_status">Estado
+                <p-sortIcon field="active"></p-sortIcon>
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-purchase>
+            <tr>
+              <td class="text-center">
+                N/A
+                <!--<button cButton color="info" size="sm" pTooltip="Imprimir documento" tooltipPosition="top"
+                        (click)="printInvoice(sale)"
+                        *ngIf="sale.invoice_status && sale.invoice_status.trim() == 'Ingresada'">
+                  <em class="fa-solid fa-print"></em></button>
+                <button cButton color="danger" size="sm" pTooltip="Anular venta" tooltipPosition="top"
+                        (click)="cancelSale(sale)">
+                  <em class="fa-solid fa-trash"></em></button>-->
+              </td>
+              <td class="text-center">{{utilitiesService.formatDate(purchase.created_at, 'DD/MM/YYYY')}}</td>
+              <td class="text-center">{{purchase.total | currency}}</td>
+              <td class="text-center">{{purchase.invoice_number}}</td>
+              <td class="text-center">{{purchase.tradename}}</td>
+              <td class="text-center">{{purchase.tradename}}</td>
+              <td class="text-center">{{purchase.invoice_format}}</td>
+              <td class="text-center">{{purchase.location}}</td>
+              <td class="text-center">{{purchase.comment}}</td>
+              <td class="text-center">
+                <c-badge
+                  [color]="utilitiesService.getFromStatus(purchase.active)">{{utilitiesService.getFromStatus(purchase.active, statusTypeData.NAME)}}</c-badge>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+        <!--Sale form-->
+        <form cForm *ngIf="isPurchaseActive" [formGroup]="purchaseForm">
+          <c-row class="mb-3">
+            <c-col [sm]="2">
+              <button cButton color="dark" (click)="returnPurchasesList()" pTooltip="Regresar al listado de compras"
+                      tooltipPosition="right">
+                <em class="fa-solid fa-arrow-left"></em> Regresar
+              </button>
+            </c-col>
+          </c-row>
+          <c-row class="mb-3">
+            <c-col [sm]="8">
+              <label cCol cLabel="col" sizing="sm" for="product" id="product-label">Producto*:</label><br>
+              <p-autoComplete formControlName="selectedProduct"
+                              [showEmptyMessage]="true" [suggestions]="filteredProducts"
+                              (completeMethod)="filterProduct($event)" field="description" [minLength]="2"
+                              [forceSelection]="true" [showClear]="true" [required]="true"
+                              (onSelect)="onSelectProduct($event)" (onClear)="onClearProduct()"
+                              [readonly]="products.length === 0" id="product" class="p-fluid"
+                              pTooltip="Digite el producto a buscar" tooltipPosition="bottom"
+                              emptyMessage="No se encontraron productos con los términos de búsqueda"
+                              placeholder="Ingrese el nombre del producto para realizar la búsqueda"></p-autoComplete>
+            </c-col>
+            <c-col [sm]="1" *ngIf="!isSelectedProduct" class="d-grid gap-2">
+              <button cButton color="info" (click)="productModal.toggleModal(undefined, true)" pTooltip="Crear nuevo producto"
+                      tooltipPosition="right" id="btn-add">
+                <em class="fa-solid fa-box"></em>
+              </button>
+            </c-col>
+            <c-col [sm]="2" *ngIf="isSelectedProduct">
+              <label cCol cLabel="col" sizing="sm" for="exists">Existencia actual:</label>
+              <input cFormControl sizing="sm" id="exists" readonly="true" type="text" placeholder="Existencias"
+                     formControlName="selectedProductStock"/>
+            </c-col>
+            <c-col [sm]="2" *ngIf="isSelectedProduct">
+              <label cCol cLabel="col" sizing="sm" for="price">Costo actual:</label>
+              <input cFormControl sizing="sm" id="price" readonly="true" type="text" placeholder="Precio"
+                     formControlName="selectedProductCost"/>
+            </c-col>
+          </c-row>
+          <c-row class="mb-3">
+            <c-col [sm]="3" *ngIf="isSelectedProduct">
+              <label cCol cLabel="col" sizing="sm" for="quantity">Cantidad a comprar*:</label>
+              <input cFormControl sizing="sm" id="quantity" type="number" placeholder="Ingrese la cantidad"
+                     formControlName="quantity" min="1"
+                     pTooltip="Cantidad minima de 1 producto" tooltipPosition="bottom"/>
+            </c-col>
+            <c-col [sm]="3" *ngIf="isSelectedProduct">
+              <label cCol cLabel="col" sizing="sm" for="unit_price">Costo unitario*:</label>
+              <input cFormControl sizing="sm" id="unit_price" type="number" placeholder="Costo del producto"
+                     formControlName="unitCost" min="0.01" step="0.01"
+                     pTooltip="Costo mínimo de $0.01" tooltipPosition="bottom"/>
+            </c-col>
+            <c-col [sm]="1" class="d-grid gap-2">
+              <br>
+              <button cButton color="success" (click)="addProductToPurchase()" pTooltip="Agregar producto"
+                      tooltipPosition="right" id="btn-add-product" *ngIf="isProductValidToAdd()">
+                <em class="fa-solid fa-plus"></em>
+              </button>
+            </c-col>
+            <c-col [sm]="2" [offset]="1" *ngIf="isProductValidToAdd()">
+              <label cCol cLabel="col" sizing="sm" for="total_cost">Costo total:</label>
+              <input cFormControl sizing="sm" id="total_cost" readonly="true" type="text" placeholder="Precio"
+                     [value]="getTotalCost()"/>
+            </c-col>
+          </c-row>
+          <!--Details-->
+          <c-row class="mb-3">
+            <p-table #dt
+                     [value]="productsToPurchase"
+                     [rowHover]="true"
+                     [paginator]="true"
+                     [rows]="10"
+                     [showCurrentPageReport]="true"
+                     [rowsPerPageOptions]="[10,25,50]"
+                     currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
+                     dataKey="id"
+                     responsiveLayout="scroll"
+                     styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+                     [globalFilterFields]="['description']"
+            >
+              <ng-template pTemplate="header">
+                <tr>
+                  <th scope="col" class="text-center">Opciones</th>
+                  <th scope="col" class="text-center" pSortableColumn="description">Descripción
+                    <p-sortIcon field="description"></p-sortIcon>
+                  </th>
+                  <th scope="col" class="text-center" pSortableColumn="quantity">Cantidad
+                    <p-sortIcon field="quantity"></p-sortIcon>
+                  </th>
+                  <th scope="col" class="text-center" pSortableColumn="price">Costo unitario
+                    <p-sortIcon field="cost"></p-sortIcon>
+                  </th>
+                  <th scope="col" class="text-center" pSortableColumn="price">Compras afectas
+                    <p-sortIcon field="total_cost"></p-sortIcon>
+                  </th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-product>
+                <tr>
+                  <td class="text-center">
+                    <button cButton color="danger" size="sm" pTooltip="Quitar producto" tooltipPosition="top"
+                            (click)="removeProduct(product)"><em class="fa-solid fa-trash"></em></button>
+                  </td>
+                  <td>{{product.description}}</td>
+                  <td pEditableColumn>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input" class="p-fluid">
+                        <input pInputText type="number" [(ngModel)]="product.quantity" (blur)="onEditQuantity(product)"
+                               [ngModelOptions]="{standalone: true}" required min="1"
+                               pTooltip="Cantidad minima de 1 producto" tooltipPosition="top">
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{product.quantity}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td pEditableColumn>
+                    <p-cellEditor>
+                      <ng-template pTemplate="input" class="p-fluid">
+                        <input pInputText type="number" [(ngModel)]="product.cost" (blur)="onEditCost(product)"
+                               [ngModelOptions]="{standalone: true}" required min="0.01" step="0.01"
+                               pTooltip="Costo mínimo de $0.01" tooltipPosition="top">
+                      </ng-template>
+                      <ng-template pTemplate="output">
+                        {{product.cost | currency}}
+                      </ng-template>
+                    </p-cellEditor>
+                  </td>
+                  <td>{{(product.quantity * product.cost).toFixed(2) | currency}}</td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="footer">
+                <tr>
+                  <td [colSpan]="4" class="text-end">Total</td>
+                  <td>{{getTotalPurchase() | currency}}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </c-row>
+          <c-row class="mb-3">
+            <c-col [sm]="6">
+              <label cCol cLabel="col" sizing="sm" for="comment">Comentarios:</label>
+              <textarea cFormControl sizing="sm" id="comment" type="text"
+                        placeholder="Ingrese los comentarios (opcional)"
+                        formControlName="comment" rows="3"
+                        pTooltip="Comentarios sobre la compra actual (opcional)" tooltipPosition="bottom"
+                        style="resize: none;"></textarea>
+            </c-col>
+            <c-col [sm]="2">
+              <label cCol sizing="sm" cLabel="col">Proveedor*:</label>
+              <select sizing="sm" aria-label="Proveedor" cSelect formControlName="provider">
+                <option *ngFor="let provider of providers" [ngValue]="provider">{{provider.tradename}}</option>
+              </select>
+              <c-form-feedback [valid]="false">El proveedor es obligatorio</c-form-feedback>
+            </c-col>
+            <c-col [sm]="2">
+              <label cCol sizing="sm" cLabel="col">Localidad*:</label>
+              <select sizing="sm" aria-label="Localidad" cSelect formControlName="location">
+                <option *ngFor="let location of locations" [ngValue]="location">{{location.name}}</option>
+              </select>
+              <c-form-feedback [valid]="false">La localidad es obligatoria</c-form-feedback>
+            </c-col>
+          </c-row>
+          <c-row class="mb-3" *ngIf="isValidToPurchase()">
+            <c-col class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <button cButton color="primary" (click)="completePurchase()" pTooltip="Facturar la compra actual"
+                      tooltipPosition="left">
+                <em class="fa-solid fa-cash-register"></em> Realizar compra
+              </button>
+            </c-col>
+          </c-row>
+        </form>
+      </c-card-body>
+    </c-card>
+  </c-col>
+</c-row>
+<!--Modal-->
+<app-product-modal
+  (sendProduct)="saveNewProduct($event)"
+></app-product-modal>

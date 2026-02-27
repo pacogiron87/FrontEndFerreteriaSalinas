@@ -1,0 +1,149 @@
+<c-modal size="xl" [visible]="isModalVisible" (visibleChange)="handleModalChange($event)">
+  <c-modal-header>
+    <h5 cModalTitle>{{modalTitle}}</h5>
+    <button cButtonClose (click)="toggleModal()"></button>
+  </c-modal-header>
+  <c-modal-body [formGroup]="productForm">
+    <c-row class="mb-3" *ngIf="!hideFields">
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="brand_code">Codigo original:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="brand_code" type="text" placeholder="Codigo original"
+               formControlName="brand_code"/>
+      </c-col>
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="company_code">Codigo de compañia:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="company_code" type="text" placeholder="Codigo de compañia"
+               formControlName="company_code"/>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3" *ngIf="!hideFields">
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="distributor_code">Codigo de distribuidor:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="distributor_code" type="text" placeholder="Codigo de distribuidor"
+               formControlName="distributor_code"/>
+        <c-form-feedback [valid]="false">El nombre es obligatorio</c-form-feedback>
+      </c-col>
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="internal_code">Codigo interno:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="internal_code" type="text" placeholder="Codigo interno"
+               formControlName="internal_code"/>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="barcode">Codigo barras:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="barcode" type="text" placeholder="Codigo barras"
+               formControlName="barcode"/>
+      </c-col>
+      <c-col [sm]="6">
+        <div class="text-center">
+          <ngx-barcode6
+            [bc-format]="'CODE128'"
+            [bc-value]="productForm.get('barcode')?.value"
+            [bc-display-value]="true"
+            *ngIf="productForm.get('barcode')?.value"
+          >
+          </ngx-barcode6>
+          <span style="font-size: 0.875rem;"
+                *ngIf="!productForm.get('barcode')?.value">Sin codigo de barras ingresado</span>
+        </div>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3" *ngIf="!hideFields">
+      <label [sm]="2" cCol sizing="sm" cLabel="col">Vista previa imagen:</label>
+      <c-col [sm]="4" class="text-center">
+        <img cImg rounded [src]="preview ? preview : './assets/images/preview.png'" width="200" alt="preview"/>
+      </c-col>
+      <c-col [sm]="6">
+        <input cFormControl sizing="sm" accept="image/*" type="file" placeholder="Seleccione una imagen"
+               (change)="showPreview($event)" #fileImage/>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="description">Descripcion*:</label>
+      <c-col [sm]="10">
+        <input cFormControl sizing="sm" id="description" type="text" placeholder="Descripcion"
+               formControlName="description"/>
+        <c-form-feedback [valid]="false">La descripcion es obligatoria</c-form-feedback>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="stock">{{ fromPurchases ? 'Stock:' : 'Stock*:' }}</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="stock" type="number" placeholder="Stock"
+               formControlName="stock"/>
+        
+      </c-col>
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="minimum_stock">Stock minimo*:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="minimum_stock" type="number" placeholder="Stock minimo"
+               formControlName="minimum_stock"/>
+        
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="cost">{{fromPurchases ? 'Costo:' : 'Costo*:'}}</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="cost" type="number" placeholder="Costo"
+               formControlName="cost"/>
+       
+      </c-col>
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="sale_price">Precio de venta*:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="sale_price" type="number" placeholder="Precio de venta"
+               formControlName="sale_price"/>
+        
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="wholesale_price">Precio de mayoreo:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="wholesale_price" type="number" placeholder="Precio de mayoreo"
+               formControlName="wholesale_price"/>
+      </c-col>
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="discount">Descuento:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="discount" type="number" placeholder="Descuento"
+               formControlName="discount"/>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <label [sm]="2" cCol sizing="sm" cLabel="col">Proveedor habitual*:</label>
+      <c-col [sm]="4">
+        <select sizing="sm" aria-label="Proveedor habitual" cSelect formControlName="provider_id"
+                [compareWith]="compareProvider">
+          <option *ngFor="let provider of providers" [ngValue]="provider">{{provider.tradename}}</option>
+        </select>
+        <c-form-feedback [valid]="false">El proveedor es obligatorio</c-form-feedback>
+      </c-col>
+      <label [sm]="2" cCol sizing="sm" cLabel="col">Categoria*:</label>
+      <c-col [sm]="4">
+        <select sizing="sm" aria-label="Categoria" cSelect formControlName="category_id"
+                [compareWith]="compareCategory">
+          <option *ngFor="let category of categories" [ngValue]="category">{{category.name}}</option>
+        </select>
+        <c-form-feedback [valid]="false">La categoria es obligatoria</c-form-feedback>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <label [sm]="2" cCol sizing="sm" cLabel="col">Localidad*:</label>
+      <c-col [sm]="4">
+        <select sizing="sm" aria-label="Localidad" cSelect formControlName="location_id"
+                [compareWith]="compareLocation">
+          <option *ngFor="let location of locations" [ngValue]="location">{{location.name}}</option>
+        </select>
+        <c-form-feedback [valid]="false">La localidad es obligatoria</c-form-feedback>
+      </c-col>
+      <label [sm]="2" cCol sizing="sm" cLabel="col">Producto exento*:</label>
+      <c-col [sm]="4">
+        <p-inputSwitch formControlName="is_exempt_product"></p-inputSwitch>
+      </c-col>
+    </c-row>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="toggleModal()"><em class="fa-solid fa-xmark"></em> Cerrar</button>
+    <button cButton color="primary" type="submit" [disabled]="productForm.invalid" (click)="onSaveChanges()"><em
+      class="fa-solid fa-floppy-disk"></em> Guardar
+    </button>
+  </c-modal-footer>
+</c-modal>

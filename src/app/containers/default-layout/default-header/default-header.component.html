@@ -1,0 +1,70 @@
+<!--<c-header class="mb-4 d-print-none" position="sticky">-->
+
+<ng-container>
+  <c-container [fluid]="true">
+    <button
+      toggle="visible"
+      cHeaderToggler
+      [cSidebarToggle]="sidebarId"
+      class="ps-1"
+    >
+      <svg cIcon
+           name="cilMenu"
+           size="lg"
+      ></svg>
+    </button>
+
+    <c-header-nav class="ms-3">
+      <c-nav-item>
+        <a cNavLink id="user-name">{{user !== null ? user.name : 'User'}}</a>
+      </c-nav-item>
+      <ng-container *ngTemplateOutlet="userDropdown"></ng-container>
+    </c-header-nav>
+
+  </c-container>
+
+  <c-header-divider></c-header-divider>
+
+  <c-container [fluid]="true">
+    <c-breadcrumb-router class="ms-2"></c-breadcrumb-router>
+  </c-container>
+
+</ng-container>
+
+<!--</c-header>-->
+
+<ng-template #userDropdown>
+  <c-dropdown alignment="end" variant="nav-item">
+    <button
+      cButton
+      color=""
+      [caret]="false"
+      cDropdownToggle
+      class="py-0"
+    >
+      <c-avatar
+        cTextColor="primary"
+        shape="rounded-1"
+        size="md"
+        [src]="user !== null && user.image ? user.image : './assets/img/avatars/default.png'"
+      >
+      </c-avatar>
+    </button>
+    <ul cDropdownMenu class="pt-0 pr-5 w-auto">
+      <li>
+        <h6 cDropdownHeader class="bg-light fw-semibold py-2">Cuenta</h6>
+      </li>
+
+      <li>
+        <a cDropdownItem (click)="logout()" style="cursor: pointer;">
+          <em class="fa-solid fa-arrow-right-from-bracket"></em>
+          Cerrar sesion
+        </a>
+      </li>
+
+    </ul>
+
+  </c-dropdown>
+
+</ng-template>
+

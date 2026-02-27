@@ -1,0 +1,120 @@
+<c-modal size="xl" [visible]="isVisible" (visibleChange)="handleModalChange($event)">
+  <c-modal-header>
+    <h5 cModalTitle>Histórico de ventas</h5>
+    <button cButtonClose (click)="toggleModal()"></button>
+  </c-modal-header>
+  <c-modal-body [formGroup]="saleForm">
+    <c-row class="mb-3" *ngIf="sales.length > 0">
+      <label [sm]="2" cCol sizing="sm" cLabel="col" for="product">Producto*:</label>
+      <c-col [sm]="4">
+        <input cFormControl sizing="sm" id="product" type="text" placeholder="Nombre del producto para filtrar ventas"
+               formControlName="product" (keyup)="filterSale($event)"/>
+      </c-col>
+    </c-row>
+    <c-row class="mb-3">
+      <p-table #dt
+               [loading]="loading"
+               [value]="filteredSales"
+               [rowHover]="true"
+               [paginator]="true"
+               [rows]="5"
+               [showCurrentPageReport]="true"
+               [rowsPerPageOptions]="[5,10]"
+               sortField="id"
+               [sortOrder]="-1"
+               currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
+               dataKey="id"
+               responsiveLayout="scroll"
+               styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem">Detalles</th>
+            <th scope="col" class="text-center">Opciones</th>
+            <th scope="col" class="text-center" pSortableColumn="invoice_type">Tipo de documento
+              <p-sortIcon field="invoice_type"></p-sortIcon>
+            </th>
+            <th scope="col" class="text-center" pSortableColumn="created_at">Fecha Venta
+              <p-sortIcon field="created_at"></p-sortIcon>
+            </th>
+            <th scope="col" class="text-center" pSortableColumn="invoice_total">Importe
+              <p-sortIcon field="invoice_total"></p-sortIcon>
+            </th>
+            <th scope="col" class="text-center" pSortableColumn="advance_payment">Anticipo
+              <p-sortIcon field="advance_payment"></p-sortIcon>
+            </th>
+            <th scope="col" class="text-center" pSortableColumn="balance_payment">Saldo
+              <p-sortIcon field="balance_payment"></p-sortIcon>
+            </th>
+            <th scope="col" class="text-center" pSortableColumn="invoice_number">Factura
+              <p-sortIcon field="invoice_number"></p-sortIcon>
+            </th>
+            <th scope="col" class="text-center" pSortableColumn="customer_name">Nombre comercial
+              <p-sortIcon field="customer_name"></p-sortIcon>
+            </th>
+            <th scope="col" class="text-center" pSortableColumn="customer_name">Nombre de negocio
+              <p-sortIcon field="customer_name"></p-sortIcon>
+            </th>
+            <th scope="col" class="text-center" pSortableColumn="location_name">Localidad
+              <p-sortIcon field="location_name"></p-sortIcon>
+            </th>
+            <th scope="col" class="text-center" pSortableColumn="comment">Observacion
+              <p-sortIcon field="comment"></p-sortIcon>
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-sale let-expanded="expanded">
+          <tr>
+            <td>
+              <button type="button" pButton pRipple [pRowToggler]="sale"
+                      class="p-button-text p-button-rounded p-button-plain"
+                      [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></button>
+            </td>
+            <td class="text-center">
+              <button cButton color="primary" size="sm" pTooltip="Seleccionar venta" tooltipPosition="right"
+                      (click)="selectSale(sale)">
+                <em class="fa-solid fa-circle-check"></em></button>
+            </td>
+            <td class="text-center">{{sale.invoice_type}}</td>
+            <td class="text-center">{{utilitiesService.formatDate(sale.created_at, 'DD/MM/YYYY HH:mm')}}</td>
+            <td class="text-center">{{sale.invoice_total | currency}}</td>
+            <td class="text-center">{{sale.advance_payment | currency}}</td>
+            <td class="text-center">{{sale.balance_payment | currency}}</td>
+            <td class="text-center">{{sale.invoice_number}}</td>
+            <td class="text-center">{{sale.business_name ?? 'Cliente: ' + sale.customer_name}}</td>
+            <td class="text-center">{{sale.commercial_business}}</td>
+            <td class="text-center">{{sale.location_name}}</td>
+            <td class="text-center">{{sale.comment}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="rowexpansion" let-product>
+          <tr>
+            <td colspan="12">
+              <div class="p-3">
+                <p-table [value]="product.saleDetails" dataKey="id">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th pSortableColumn="description_item">Producto<p-sortIcon field="description_item"></p-sortIcon></th>
+                      <th pSortableColumn="quantity">Cantidad<p-sortIcon field="quantity"></p-sortIcon></th>
+                      <th pSortableColumn="unit_price">Precio unitario<p-sortIcon field="unit_price"></p-sortIcon></th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-detail>
+                    <tr>
+                      <td>{{detail.description_item}}</td>
+                      <td>{{detail.quantity}}</td>
+                      <td class="text-center">{{detail.unit_price | currency}}</td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </c-row>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="toggleModal()"><em class="fa-solid fa-xmark"></em> Cerrar</button>
+  </c-modal-footer>
+</c-modal>

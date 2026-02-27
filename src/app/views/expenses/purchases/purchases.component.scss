@@ -1,0 +1,26 @@
+:host {
+  ::ng-deep .p-calendar {
+    min-width: -webkit-fill-available !important;
+  }
+}
+
+::ng-deep.p-inputtext {
+  padding: 0.4rem 0.75rem !important;
+  font-size: 0.875rem;
+}
+
+::ng-deep#product-label {
+  padding-bottom: 0.2rem !important;
+}
+
+::ng-deep#btn-add-product {
+  margin-top: -0.3rem;
+}
+
+::ng-deep#btn-add {
+  margin-top: 1.6rem;
+}
+
+::ng-deep#column-table {
+  padding: 1rem !important;
+}

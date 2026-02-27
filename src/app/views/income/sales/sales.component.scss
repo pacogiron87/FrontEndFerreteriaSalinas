@@ -1,0 +1,48 @@
+:host {
+  ::ng-deep .p-calendar {
+    min-width: -webkit-fill-available !important;
+  }
+}
+
+::ng-deep.p-inputtext {
+  padding: 0.4rem 0.75rem !important;
+  font-size: 0.875rem;
+}
+
+::ng-deep#product-label {
+  padding-bottom: 0.2rem !important;
+}
+
+::ng-deep#btn-add-product {
+  margin-top: -0.3rem;
+}
+
+::ng-deep#btn-new-customer {
+  margin-top: 1.8rem;
+  margin-bottom: 2rem;
+}
+
+::ng-deep#btn-search-historic {
+  margin-top: 1.8rem;
+  margin-bottom: 2rem;
+}
+
+::ng-deep#switch-customer {
+  margin-top: -1.5rem;
+}
+
+::ng-deep#column-table {
+  padding: 1rem !important;
+}
+
+::ng-deep#switch-tax {
+  margin-top: 1.7rem;
+}
+
+::ng-deep#invoice-label {
+  text-align: right !important;
+}
+
+::ng-deep.btn-modal-buttons {
+  height: fit-content !important;
+}
