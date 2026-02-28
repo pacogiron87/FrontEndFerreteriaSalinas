@@ -35,7 +35,7 @@ Este proyecto es una aplicación web desarrollada con Angular 21 que sirve como 
 
 2. **Instalar dependencias**
    ```bash
-   npm install
+   npm install --legacy-peer-deps
    ```
 
 ## Ejecución
