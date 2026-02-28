@@ -1,0 +1,32 @@
+/* Styles for Premium Standalone Layout */
+.layout-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.sidebar-active {
+    margin-left: 280px;
+}
+
+@media (max-width: 991px) {
+    .sidebar-active {
+        margin-left: 0;
+    }
+}
+
+/* Custom Scrollbar for Sidebar */
+::ng-deep .custom-scroll .p-scrollpanel-bar {
+    background: var(--primary-color);
+    opacity: 0.2;
+}
+
+::ng-deep .custom-scroll .p-scrollpanel-bar:hover {
+    opacity: 0.5;
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -1,1 +1,166 @@
-<p>users works!</p>
+<p-toast></p-toast>
+
+<div class="p-4 bg-gray-50 min-h-screen">
+  
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
+    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+      <div class="flex align-items-center gap-3">
+        <i class="fa-solid fa-user-gear text-2xl"></i>
+        <span class="text-xl font-bold uppercase tracking-wider">Gestión de Usuarios del Sistema</span>
+      </div>
+      <p-button label="Nuevo Usuario" icon="pi pi-user-plus" severity="success" (onClick)="toggleModal()" pTooltip="Registrar un nuevo acceso" class="hidden md:block"></p-button>
+    </div>
+
+    <div class="p-card-body p-4">
+      
+      <p-table #dt 
+               [loading]="loading()" 
+               [value]="allUsers()" 
+               [rowHover]="true" 
+               [paginator]="true" 
+               [rows]="10" 
+               [showCurrentPageReport]="true"
+               [rowsPerPageOptions]="[5,10,25]"
+               currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} usuarios"
+               dataKey="id" 
+               responsiveLayout="stack" 
+               breakpoint="960px"
+               styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped shadow-1 border-round overflow-hidden"
+               [globalFilterFields]="['name','userName','email','roles']">
+        
+        <ng-template pTemplate="caption">
+          <div class="flex flex-column md:flex-row justify-content-between align-items-center gap-3">
+            <div class="flex gap-2 w-full md:w-auto">
+              <p-button icon="pi pi-user-plus" severity="success" (onClick)="toggleModal()" pTooltip="Nuevo Usuario" class="md:hidden"></p-button>
+              <span class="p-input-icon-left w-full">
+                <i class="pi pi-search"></i>
+                <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar por nombre, correo, usuario..." class="w-full md:w-25rem" />
+              </span>
+            </div>
+            
+            <p-button icon="pi pi-filter-slash" [outlined]="true" (onClick)="dt.clear()" pTooltip="Limpiar filtros"></p-button>
+          </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="text-center font-bold" style="width: 8rem">Acciones</th>
+            <th pSortableColumn="name" style="min-width: 15rem">Nombre Completo <p-sortIcon field="name"></p-sortIcon></th>
+            <th pSortableColumn="userName" style="min-width: 10rem">Usuario <p-sortIcon field="userName"></p-sortIcon></th>
+            <th pSortableColumn="email" style="min-width: 15rem">Email <p-sortIcon field="email"></p-sortIcon></th>
+            <th pSortableColumn="roles" class="text-center" style="width: 10rem">Rol <p-sortIcon field="roles"></p-sortIcon></th>
+            <th pSortableColumn="active" class="text-center" style="width: 8rem">Estado <p-sortIcon field="active"></p-sortIcon></th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-user>
+          <tr>
+            <td class="text-center">
+              <div class="flex justify-content-center gap-2">
+                <p-button icon="pi pi-user-edit" severity="warn" size="small" [rounded]="true" pTooltip="Editar" (onClick)="toggleModal(user)"></p-button>
+                @if (user.active) {
+                  <p-button icon="pi pi-lock" severity="danger" size="small" [rounded]="true" pTooltip="Inactivar" (onClick)="changeStatus(user, false)"></p-button>
+                } @else {
+                  <p-button icon="pi pi-lock-open" severity="info" size="small" [rounded]="true" pTooltip="Activar" (onClick)="changeStatus(user, true)"></p-button>
+                }
+              </div>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Nombre:</span>
+              <span class="font-bold text-gray-800 line-height-3 uppercase text-sm">{{user.name}}</span>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Usuario:</span>
+              <span class="font-mono text-primary font-bold">{{user.userName || user.username}}</span>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Email:</span>
+              <span class="text-xs underline text-blue-600 italic">{{user.email || '---'}}</span>
+            </td>
+            <td class="text-center">
+              <span class="p-column-title font-bold">Rol:</span>
+              <p-tag [value]="user.roles || user.role" 
+                     [severity]="(user.roles || user.role)?.toLowerCase() === 'admin' ? 'danger' : 'info'"
+                     [rounded]="true" class="text-xs uppercase"></p-tag>
+            </td>
+            <td class="text-center">
+              <span class="p-column-title font-bold">Estado:</span>
+              <p-tag [value]="user.active ? 'Activo' : 'Inactivo'" 
+                     [severity]="user.active ? 'success' : 'warn'"
+                     [rounded]="true"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="text-center p-6 text-gray-400">
+              <i class="pi pi-user-group text-5xl mb-3 block"></i>
+              No se encontraron usuarios registrados en el sistema.
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false" (onHide)="handleModalChange(false)">
+  
+  <form [formGroup]="userForm" (ngSubmit)="saveChanges()" class="p-fluid">
+    <div class="grid pt-3">
+      
+      <div class="col-12 field mb-3">
+        <label class="font-bold mb-2 block">Nombre Completo*</label>
+        <span class="p-input-icon-left">
+          <i class="pi pi-user"></i>
+          <input pInputText formControlName="name" placeholder="Ej. Carlos Portillo" />
+        </span>
+      </div>
+
+      <div class="col-12 md:col-6 field mb-3">
+        <label class="font-bold mb-2 block">Nombre de Usuario*</label>
+        <input pInputText formControlName="userName" placeholder="cportillo" />
+      </div>
+
+      <div class="col-12 md:col-6 field mb-3">
+        <label class="font-bold mb-2 block">Rol / Perfil*</label>
+        <p-select [options]="roles" formControlName="roles" optionLabel="label" optionValue="value" placeholder="Seleccione Rol"></p-select>
+      </div>
+
+      <div class="col-12 field mb-3">
+        <label class="font-bold mb-2 block">Correo Electrónico*</label>
+        <span class="p-input-icon-left">
+          <i class="pi pi-envelope"></i>
+          <input pInputText formControlName="email" placeholder="usuario@ferreteria.com" />
+        </span>
+      </div>
+
+      @if (userId() === '0') {
+        <div class="col-12 field mb-3">
+          <label class="font-bold mb-2 block text-primary">Contraseña Temporal*</label>
+          <span class="p-input-icon-left">
+            <i class="pi pi-lock"></i>
+            <input pInputText type="password" formControlName="password" placeholder="Mínimo 6 caracteres" />
+          </span>
+          <small class="text-gray-500 italic">El usuario deberá cambiar su clave al primer ingreso.</small>
+        </div>
+      } @else {
+        <div class="col-12 mb-3">
+          <div class="p-2 bg-blue-50 border-round border-1 border-blue-100 text-xs text-blue-700">
+            <i class="pi pi-info-circle mr-1"></i> La contraseña solo puede ser modificada desde el perfil del usuario.
+          </div>
+        </div>
+      }
+
+    </div>
+
+    <div class="flex justify-content-end gap-2 pt-4 border-top-1 border-gray-100 mt-3">
+      <p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="handleModalChange(false)"></p-button>
+      <p-button label="Guardar Usuario" icon="pi pi-check" severity="primary" type="submit" [disabled]="userForm.invalid"></p-button>
+    </div>
+
+  </form>
+
+</p-dialog>

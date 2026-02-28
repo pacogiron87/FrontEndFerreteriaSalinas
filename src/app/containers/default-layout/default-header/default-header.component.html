@@ -1,70 +1,37 @@
-<!--<c-header class="mb-4 d-print-none" position="sticky">-->
+<p-toolbar styleClass="p-2 bg-primary border-none border-round-none shadow-1">
+    <div class="p-toolbar-group-start">
+        <div class="flex align-items-center gap-3">
+            <p-button icon="pi pi-bars" (onClick)="sidebarVisible.set(!sidebarVisible())" 
+                      severity="secondary" [text]="true" rounded="true"
+                      class="text-white hover:bg-primary-dark transition-colors transition-duration-300"></p-button>
+            <div class="flex align-items-center gap-2">
+                <img src="assets/cernalogo.png" height="35" class="mr-2" alt="Logo" />
+                <span class="text-xl font-bold text-white hidden md:block tracking-tight uppercase">Ferretería Salinas</span>
+            </div>
+        </div>
+    </div>
 
-<ng-container>
-  <c-container [fluid]="true">
-    <button
-      toggle="visible"
-      cHeaderToggler
-      [cSidebarToggle]="sidebarId"
-      class="ps-1"
-    >
-      <svg cIcon
-           name="cilMenu"
-           size="lg"
-      ></svg>
-    </button>
+    <div class="p-toolbar-group-end">
+        <div class="flex align-items-center gap-4">
+            <!-- Notifications (Placeholder) -->
+            <p-button icon="pi pi-bell" severity="secondary" [text]="true" rounded="true" 
+                      class="text-white p-badge-dot" pTooltip="Notificaciones" tooltipPosition="bottom"></p-button>
 
-    <c-header-nav class="ms-3">
-      <c-nav-item>
-        <a cNavLink id="user-name">{{user !== null ? user.name : 'User'}}</a>
-      </c-nav-item>
-      <ng-container *ngTemplateOutlet="userDropdown"></ng-container>
-    </c-header-nav>
-
-  </c-container>
-
-  <c-header-divider></c-header-divider>
-
-  <c-container [fluid]="true">
-    <c-breadcrumb-router class="ms-2"></c-breadcrumb-router>
-  </c-container>
-
-</ng-container>
-
-<!--</c-header>-->
-
-<ng-template #userDropdown>
-  <c-dropdown alignment="end" variant="nav-item">
-    <button
-      cButton
-      color=""
-      [caret]="false"
-      cDropdownToggle
-      class="py-0"
-    >
-      <c-avatar
-        cTextColor="primary"
-        shape="rounded-1"
-        size="md"
-        [src]="user !== null && user.image ? user.image : './assets/img/avatars/default.png'"
-      >
-      </c-avatar>
-    </button>
-    <ul cDropdownMenu class="pt-0 pr-5 w-auto">
-      <li>
-        <h6 cDropdownHeader class="bg-light fw-semibold py-2">Cuenta</h6>
-      </li>
-
-      <li>
-        <a cDropdownItem (click)="logout()" style="cursor: pointer;">
-          <em class="fa-solid fa-arrow-right-from-bracket"></em>
-          Cerrar sesion
-        </a>
-      </li>
-
-    </ul>
-
-  </c-dropdown>
-
-</ng-template>
-
+            <!-- User Info & Dropdown -->
+            <div class="flex align-items-center gap-3 cursor-pointer p-2 border-round hover:bg-white-alpha-10 transition-all transition-duration-200"
+                 (click)="userMenu.toggle($event)">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-bold text-white line-height-2">{{ user()?.name || 'Usuario' }}</div>
+                    <div class="text-xs text-white-alpha-70 line-height-1 capitalize opacity-80">{{ user()?.roles?.toLowerCase() }}</div>
+                </div>
+                <p-avatar [label]="(user()?.name?.charAt(0) || 'U').toUpperCase()" 
+                          styleClass="bg-white text-primary font-bold shadow-1 border-1 border-white-alpha-20" 
+                          size="large" shape="circle"></p-avatar>
+                <i class="pi pi-chevron-down text-white-alpha-70 text-xs"></i>
+            </div>
+            
+            <!-- Hidden User Menu -->
+            <p-menu #userMenu [model]="userMenuItems" [popup]="true" styleClass="mt-2 shadow-4 border-none border-round-xl"></p-menu>
+        </div>
+    </div>
+</p-toolbar>

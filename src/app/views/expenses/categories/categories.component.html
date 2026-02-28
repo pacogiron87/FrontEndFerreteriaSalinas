@@ -1,103 +1,116 @@
-<!--Notifications-->
 <p-toast></p-toast>
-<!--Table-->
-<c-row ngPreserveWhitespaces>
-  <c-col xs="12">
-    <c-card class="mb-4">
-      <c-card-header>
-        <em class="fa-solid fa-star"></em> <strong>Categorias</strong>
-      </c-card-header>
-      <c-card-body>
-        <p-table #dt
-                 [loading]="loading"
-                 [value]="categories"
-                 [rowHover]="true"
-                 [paginator]="true"
-                 [rows]="10"
-                 [showCurrentPageReport]="true"
-                 [rowsPerPageOptions]="[10,25,50]"
-                 currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-                 dataKey="id"
-                 responsiveLayout="scroll"
-                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                 [globalFilterFields]="['name','description','active']"
-        >
-          <ng-template pTemplate="caption">
-            <div class="d-flex justify-content-between">
-              <button cButton color="dark" (click)="toggleModal()" pTooltip="Agregar categoria" tooltipPosition="right">
-                <em class="fa-solid fa-circle-plus pe-2"></em>Agregar
-              </button>
-              <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-                           placeholder="Buscar"/>
-                </span>
+
+<div class="p-4 bg-gray-50 min-h-screen">
+  
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
+    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+      <div class="flex align-items-center gap-3">
+        <i class="fa-solid fa-star text-2xl"></i>
+        <span class="text-xl font-bold uppercase tracking-wider">Categorías de Inventario</span>
+      </div>
+      <p-button label="Nueva Categoría" icon="pi pi-plus" severity="success" (onClick)="toggleModal()" pTooltip="Añadir una nueva categoría" class="hidden md:block"></p-button>
+    </div>
+
+    <div class="p-card-body p-4">
+      
+      <p-table #dt 
+               [loading]="loading()" 
+               [value]="categories()" 
+               [rowHover]="true" 
+               [paginator]="true" 
+               [rows]="10" 
+               [showCurrentPageReport]="true"
+               [rowsPerPageOptions]="[10,25,50]"
+               currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} categorías"
+               dataKey="id" 
+               responsiveLayout="stack" 
+               breakpoint="960px"
+               styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped shadow-1 border-round overflow-hidden"
+               [globalFilterFields]="['name','description']">
+        
+        <ng-template pTemplate="caption">
+          <div class="flex flex-column md:flex-row justify-content-between align-items-center gap-3">
+            <div class="flex gap-2 w-full md:w-auto">
+              <p-button icon="pi pi-plus" severity="success" (onClick)="toggleModal()" pTooltip="Nueva Categoría" class="md:hidden"></p-button>
+              <span class="p-input-icon-left w-full">
+                <i class="pi pi-search"></i>
+                <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar por nombre o descripción..." class="w-full md:w-25rem" />
+              </span>
             </div>
-          </ng-template>
-          <ng-template pTemplate="header">
-            <tr>
-              <th scope="col" class="text-center">Opciones</th>
-              <th scope="col" class="text-center" pSortableColumn="name">Nombre
-                <p-sortIcon field="name"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="description">Descripcion
-                <p-sortIcon field="description"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="active">Estado
-                <p-sortIcon field="active"></p-sortIcon>
-              </th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-category>
-            <tr>
-              <td class="text-center">
-                <button cButton color="warning" size="sm" pTooltip="Editar categoria" tooltipPosition="top"
-                        (click)="toggleModal(category)"><em class="fa-solid fa-pen"></em></button>
-                <button cButton color="danger" size="sm" pTooltip="Desactivar categoria" tooltipPosition="top"
-                        *ngIf="category.active" (click)="changeStatus(category, false)">
-                  <em class="fa-solid fa-trash"></em></button>
-                <button cButton color="info" size="sm" pTooltip="Activar categoria" tooltipPosition="top"
-                        *ngIf="!category.active" (click)="changeStatus(category, true)">
-                  <em class="fa-solid fa-trash-arrow-up"></em></button>
-              </td>
-              <td>{{category.name}}</td>
-              <td>{{category.description === 'null' ? '' : category.description}}</td>
-              <td class="text-center">
-                <c-badge
-                  [color]="utilitiesService.getFromStatus(category.active)">{{utilitiesService.getFromStatus(category.active, statusTypeData.NAME)}}</c-badge>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
-<!--Modal-->
-<c-modal alignment="center" [visible]="isModalVisible" (visibleChange)="handleModalChange($event)">
-  <c-modal-header>
-    <h5 cModalTitle>{{modalTitle}}</h5>
-    <button cButtonClose (click)="toggleModal()"></button>
-  </c-modal-header>
-  <c-modal-body [formGroup]="categoryForm">
-    <c-row class="mb-3">
-      <label [sm]="3" cCol cLabel="col" for="name">Nombre*:</label>
-      <c-col [sm]="9">
-        <input cFormControl id="name" type="text" placeholder="Nombre" formControlName="name"/>
-        <c-form-feedback [valid]="false">El nombre es obligatorio</c-form-feedback>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="3" cCol cLabel="col" for="description">Descripcion:</label>
-      <c-col [sm]="9">
-        <input cFormControl id="description" type="text" placeholder="Descripcion" formControlName="description"/>
-      </c-col>
-    </c-row>
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" (click)="toggleModal()"><em class="fa-solid fa-xmark"></em> Cerrar</button>
-    <button cButton color="primary" type="submit" [disabled]="categoryForm.invalid" (click)="saveChanges()"><em
-      class="fa-solid fa-floppy-disk"></em> Guardar
-    </button>
-  </c-modal-footer>
-</c-modal>
+            <p-button icon="pi pi-filter-slash" [outlined]="true" (onClick)="dt.clear()" pTooltip="Limpiar filtros"></p-button>
+          </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="text-center font-bold" style="width: 8rem">Opciones</th>
+            <th pSortableColumn="name" style="min-width: 12rem">Nombre <p-sortIcon field="name"></p-sortIcon></th>
+            <th pSortableColumn="description" style="min-width: 20rem">Descripción <p-sortIcon field="description"></p-sortIcon></th>
+            <th pSortableColumn="active" class="text-center" style="width: 10rem">Estado <p-sortIcon field="active"></p-sortIcon></th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-category>
+          <tr>
+            <td class="text-center">
+              <div class="flex justify-content-center gap-2">
+                <p-button icon="pi pi-pencil" severity="warn" size="small" [rounded]="true" pTooltip="Editar" (onClick)="toggleModal(category)"></p-button>
+                @if (category.active) {
+                  <p-button icon="pi pi-trash" severity="danger" size="small" [rounded]="true" pTooltip="Desactivar" (onClick)="changeStatus(category, false)"></p-button>
+                } @else {
+                  <p-button icon="pi pi-refresh" severity="info" size="small" [rounded]="true" pTooltip="Activar" (onClick)="changeStatus(category, true)"></p-button>
+                }
+              </div>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Nombre:</span>
+              <span class="font-bold text-gray-800">{{category.name}}</span>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Descripción:</span>
+              <span class="text-sm line-height-3">{{category.description || 'Sin descripción'}}</span>
+            </td>
+            <td class="text-center">
+              <span class="p-column-title font-bold">Estado:</span>
+              <p-tag [value]="category.active ? 'Activa' : 'Inactiva'" 
+                     [severity]="category.active ? 'success' : 'warn'"
+                     [rounded]="true"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="4" class="text-center p-5 text-gray-400">
+              <i class="pi pi-info-circle text-2xl mb-2 block"></i>
+              No se encontraron categorías registradas.
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '450px'}" [draggable]="false" [resizable]="false" (onHide)="handleModalChange(false)">
+  <form [formGroup]="categoryForm" (ngSubmit)="saveChanges()" class="p-fluid">
+    <div class="grid pt-2">
+      <div class="col-12 field">
+        <label class="font-bold mb-2 block">Nombre de la Categoría*</label>
+        <input pInputText formControlName="name" placeholder="Ej. Herramientas, Construcción..." />
+        @if (categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched) {
+          <small class="p-error">El nombre es requerido (mín. 3 caracteres).</small>
+        }
+      </div>
+      <div class="col-12 field">
+        <label class="font-bold mb-2 block text-sm">Descripción (Opcional)</label>
+        <textarea pInputTextarea formControlName="description" rows="4" placeholder="Agregue detalles sobre esta categoría..."></textarea>
+      </div>
+    </div>
+    <div class="flex justify-content-end gap-2 pt-4 border-top-1 border-gray-100 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="handleModalChange(false)"></p-button>
+      <p-button label="Guardar" icon="pi pi-save" severity="primary" type="submit" [disabled]="categoryForm.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>

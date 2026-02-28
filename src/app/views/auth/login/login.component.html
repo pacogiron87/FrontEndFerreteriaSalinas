@@ -1,62 +1,55 @@
-<!--Notifications-->
 <p-toast></p-toast>
-<!--Form-->
-<div class="bg-light min-vh-100 d-flex flex-row align-items-center">
-  <c-container>
-    <c-row class="justify-content-center">
-      <c-col md="8">
-        <c-card-group>
-          <c-card class="p-4">
-            <c-card-body>
-              <form cForm [formGroup]="loginForm" (ngSubmit)="login()">
-                <h1>Bienvenido</h1>
-                <p class="text-medium-emphasis">Sistema de facturaci&oacute;n e inventario</p>
-                <c-input-group class="mb-3">
-                  <span cInputGroupText>
-                    <em class="fa-solid fa-user-shield"></em>
-                  </span>
-                  <input autoComplete="username" cFormControl placeholder="Usuario" formControlName="name"/>
-                  <c-form-feedback [valid]="false">El nombre de usuario es obligatorio</c-form-feedback>
-                </c-input-group>
-                <c-input-group class="mb-4">
-                  <span cInputGroupText>
-                    <em class="fa-solid fa-key"></em>
-                  </span>
-                  <input
-                    autoComplete="current-password"
-                    cFormControl
-                    placeholder="Password"
-                    [type]="showPassword ? 'text' : 'password'"
-                    formControlName="password"
-                  />
-                  <span cInputGroupText id="show-hide"><em (click)="showHidePassword()"
-                                            [pTooltip]="showPassword ? 'Ocultar password' : 'Ver password'"
-                                            tooltipPosition="top"
-                                            [class]="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"
-                                            id="show-hide-icon"></em></span>
-                  <c-form-feedback [valid]="false">El password es obligatorio</c-form-feedback>
-                </c-input-group>
-                <c-row>
-                  <c-col xs="6">
-                    <button cButton class="px-4" color="primary" type="submit" [disabled]="loginForm.invalid">
-                      Ingresar
-                    </button>
-                  </c-col>
-                </c-row>
-              </form>
-            </c-card-body>
-          </c-card>
-          <c-card [ngStyle]="{'width.%': 44, 'background-color': '#24325e'}" class="text-white py-5">
-            <c-card-body class="d-flex justify-content-center align-items-center">
-              <img
-                src="./assets/img/brand/logo.jpeg"
-                width="75%"
-                alt="Scandalos Boutique"
-              >
-            </c-card-body>
-          </c-card>
-        </c-card-group>
-      </c-col>
-    </c-row>
-  </c-container>
+
+<div class="flex align-items-center justify-content-center min-h-screen bg-gray-100 p-4">
+  <div class="w-full" style="max-width: 450px;">
+    
+    <div class="text-center mb-5">
+      <img src="assets/cernalogo.png" alt="Logo" height="80" class="mb-3" />
+      <h1 class="text-3xl font-bold text-gray-800 m-0">Ferretería Salinas</h1>
+      <p class="text-gray-500 mt-2">Sistema de Facturación e Inventario</p>
+    </div>
+
+    <p-card styleClass="shadow-4 border-round-xl">
+      <div class="p-fluid">
+        <h2 class="text-xl font-semibold mb-4 text-center border-bottom-1 border-gray-200 pb-3 uppercase tracking-wider text-primary">
+          Acceso al Sistema
+        </h2>
+
+        <form [formGroup]="loginForm" (ngSubmit)="login()">
+          
+          <div class="field mb-4">
+            <label class="font-bold text-sm mb-2 block">Usuario</label>
+            <span class="p-input-icon-left">
+              <i class="pi pi-user"></i>
+              <input pInputText formControlName="name" placeholder="Ingrese su usuario" autocomplete="username" />
+            </span>
+            @if (loginForm.get('name')?.invalid && loginForm.get('name')?.touched) {
+              <small class="p-error block mt-1">El usuario es requerido.</small>
+            }
+          </div>
+
+          <div class="field mb-5">
+            <label class="font-bold text-sm mb-2 block">Contraseña</label>
+            <p-password formControlName="password" [feedback]="false" [toggleMask]="true" 
+                        placeholder="••••••••" styleClass="w-full" inputStyleClass="w-full"></p-password>
+            @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+              <small class="p-error block mt-1">Mínimo 5 caracteres.</small>
+            }
+          </div>
+
+          <p-button type="submit" label="Iniciar Sesión" icon="pi pi-sign-in" 
+                    [loading]="isLoading()" [disabled]="loginForm.invalid" 
+                    styleClass="p-button-lg shadow-2"></p-button>
+
+        </form>
+      </div>
+
+      <ng-template pTemplate="footer">
+        <div class="text-center pt-3 text-sm text-gray-400">
+          &copy; 2026 Kaizen Software. Todos los derechos reservados.
+        </div>
+      </ng-template>
+    </p-card>
+
+  </div>
 </div>

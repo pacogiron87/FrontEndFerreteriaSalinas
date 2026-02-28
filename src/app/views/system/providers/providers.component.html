@@ -1,190 +1,80 @@
-<!--Notifications-->
 <p-toast></p-toast>
-<!--Table-->
-<c-row ngPreserveWhitespaces>
-  <c-col xs="12">
-    <c-card class="mb-4">
-      <c-card-header>
-        <em class="fa-solid fa-people-carry-box"></em> <strong>Proveedores</strong>
-      </c-card-header>
-      <c-card-body>
-        <p-table #dt
-                 [loading]="loading"
-                 [value]="providers"
-                 [rowHover]="true"
-                 [paginator]="true"
-                 [rows]="10"
-                 [showCurrentPageReport]="true"
-                 [rowsPerPageOptions]="[10,25,50]"
-                 currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-                 dataKey="id"
-                 responsiveLayout="scroll"
-                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                 [globalFilterFields]="['fiscal_name','tradename','contact_person','country','active']"
-        >
-          <ng-template pTemplate="caption">
-            <div class="d-flex justify-content-between">
-              <button cButton color="dark" (click)="toggleModal()" pTooltip="Agregar proveedor" tooltipPosition="right">
-                <em class="fa-solid fa-circle-plus pe-2"></em>Agregar
-              </button>
-              <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-                           placeholder="Buscar"/>
-                </span>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="header">
-            <tr>
-              <th scope="col" class="text-center">Opciones</th>
-              <th scope="col" class="text-center" pSortableColumn="fiscal_name">Nombre fiscal
-                <p-sortIcon field="fiscal_name"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="tradename">Nombre comercial
-                <p-sortIcon field="tradename"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="contact_person">Persona de contacto
-                <p-sortIcon field="contact_person"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="country">Pa&iacute;s
-                <p-sortIcon field="country"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="active">Estado
-                <p-sortIcon field="active"></p-sortIcon>
-              </th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-provider>
-            <tr>
-              <td class="text-center">
-                <button cButton color="warning" size="sm" pTooltip="Editar proveedor" tooltipPosition="top"
-                        (click)="toggleModal(provider)"><em class="fa-solid fa-pen"></em></button>
-                <button cButton color="danger" size="sm" pTooltip="Desactivar proveedor" tooltipPosition="top"
-                        *ngIf="provider.active" (click)="changeStatus(provider, false)">
-                  <em class="fa-solid fa-trash"></em></button>
-                <button cButton color="info" size="sm" pTooltip="Activar proveedor" tooltipPosition="top"
-                        *ngIf="!provider.active" (click)="changeStatus(provider, true)">
-                  <em class="fa-solid fa-trash-arrow-up"></em></button>
-              </td>
-              <td>{{provider.fiscal_name === 'null' ? '' : provider.fiscal_name}}</td>
-              <td>{{provider.tradename}}</td>
-              <td>{{provider.contact_person}}</td>
-              <td>{{provider.country}}</td>
-              <td class="text-center">
-                <c-badge color="success" *ngIf="provider.active">Activo</c-badge>
-                <c-badge color="danger" *ngIf="!provider.active">Inactivo</c-badge>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
-<!--Modal-->
-<c-modal size="xl" [visible]="isModalVisible" (visibleChange)="handleModalChange($event)">
-  <c-modal-header>
-    <h5 cModalTitle>{{modalTitle}}</h5>
-    <button cButtonClose (click)="toggleModal()"></button>
-  </c-modal-header>
-  <c-modal-body [formGroup]="providerForm">
-    <c-row class="mb-3">
-      <label [sm]="1" cCol sizing="sm" cLabel="col" for="code">C&oacute;digo:</label>
-      <c-col [sm]="3">
-        <input cFormControl sizing="sm" id="code" type="text" placeholder="C&oacute;digo del proveedor"
-               formControlName="code"/>
-      </c-col>
-      <label [sm]="1" cCol sizing="sm" cLabel="col" for="nrc">NRC:</label>
-      <c-col [sm]="3">
-        <input cFormControl sizing="sm" id="nrc" type="text" placeholder="NRC del proveedor"
-               formControlName="nrc"/>
-      </c-col>
-      <label [sm]="1" cCol sizing="sm" cLabel="col" for="nit">NIT:</label>
-      <c-col [sm]="3">
-        <input cFormControl sizing="sm" id="nit" type="text" placeholder="NIT del proveedor"
-               formControlName="nit"/>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="fiscal_name">Nombre fiscal:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="fiscal_name" type="text" placeholder="Nombre fiscal del proveedor"
-               formControlName="fiscal_name"/>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="tradename">Nombre comercial*:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="tradename" type="text" placeholder="Nombre comercial del proveedor"
-               formControlName="tradename"/>
-        <c-form-feedback [valid]="false">El nombre comercial es obligatorio</c-form-feedback>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="address">Direcci&oacute;n:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="address" type="text" placeholder="Direcci&oacute;n del proveedor"
-               formControlName="address"/>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="country">Pa&iacute;s*:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="country" type="text" placeholder="Pa&iacute;s de origen del proveedor"
-               formControlName="country"/>
-        <c-form-feedback [valid]="false">El pa&iacute;s es obligatorio</c-form-feedback>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="phone">Tel&eacute;fono:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="phone" type="text" placeholder="Tel&eacute;fono del proveedor"
-               formControlName="phone"/>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="mobile">Celular:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="mobile" type="text" placeholder="Tel&eacute;fono celular del proveedor"
-               formControlName="mobile"/>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="contact_person">Persona de contacto:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="contact_person" type="text" placeholder="Persona de contacto del proveedor"
-               formControlName="contact_person"/>
-        <c-form-feedback [valid]="false">La persona de contacto es obligatoria</c-form-feedback>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="email">Email:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="email" type="text" placeholder="Email del proveedor"
-               formControlName="email"/>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="facebook">Facebook:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="facebook" type="text" placeholder="Facebook del proveedor"
-               formControlName="facebook"/>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="twitter">Twitter:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="twitter" type="text" placeholder="Twitter del proveedor"
-               formControlName="twitter"/>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="website">Sitio web:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="website" type="text" placeholder="Sitio web del proveedor"
-               formControlName="website"/>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="bank_data">Informaci&oacute;n bancaria:</label>
-      <c-col [sm]="4">
-        <textarea cFormControl sizing="sm" id="bank_data" type="text" placeholder="Informaci&oacute;n bancaria del proveedor"
-               formControlName="bank_data" rows="4"></textarea>
-      </c-col>
-    </c-row>
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" (click)="toggleModal()"><em class="fa-solid fa-xmark"></em> Cerrar</button>
-    <button cButton color="primary" type="submit" [disabled]="providerForm.invalid" (click)="saveChanges()"><em
-      class="fa-solid fa-floppy-disk"></em> Guardar
-    </button>
-  </c-modal-footer>
-</c-modal>
+
+<div class="p-4 bg-gray-50 min-h-screen">
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
+    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+      <div class="flex align-items-center gap-3">
+        <i class="fa-solid fa-people-carry-box text-2xl"></i>
+        <span class="text-xl font-bold uppercase tracking-wider">Gestión de Proveedores</span>
+      </div>
+      <p-button label="Nuevo Proveedor" icon="pi pi-plus" severity="success" (onClick)="toggleModal()"></p-button>
+    </div>
+
+    <div class="p-card-body p-4">
+      <p-table #dt [loading]="loading()" [value]="providers()" [rowHover]="true" [paginator]="true" [rows]="25" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="text-center">Opciones</th><th>Proveedor</th><th>Contacto</th><th>Email</th><th>Móvil</th><th class="text-center">Estado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-provider>
+          <tr>
+            <td class="text-center">
+              <div class="flex justify-content-center gap-2">
+                <p-button icon="pi pi-pencil" severity="warn" size="small" [rounded]="true" (onClick)="toggleModal(provider)"></p-button>
+                @if (provider.active) {
+                  <p-button icon="pi pi-trash" severity="danger" size="small" [rounded]="true" (onClick)="changeStatus(provider, false)"></p-button>
+                } @else {
+                  <p-button icon="pi pi-refresh" severity="info" size="small" [rounded]="true" (onClick)="changeStatus(provider, true)"></p-button>
+                }
+              </div>
+            </td>
+            <td><span class="font-bold">{{provider.tradename}}</span></td>
+            <td>{{provider.contact_person}}</td>
+            <td>{{provider.email}}</td>
+            <td>{{provider.mobile}}</td>
+            <td class="text-center"><p-tag [value]="provider.active ? 'Activo' : 'Inactivo'" [severity]="provider.active ? 'success' : 'warn'" [rounded]="true"></p-tag></td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="text-center p-5">No se encontraron proveedores registrados.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '60vw'}">
+  <form [formGroup]="providerForm" (ngSubmit)="saveChanges()" class="p-fluid">
+    <p-tabs value="0">
+      <p-tablist>
+        <p-tab value="0">General</p-tab>
+        <p-tab value="1">Contacto</p-tab>
+        <p-tab value="2">Bancario</p-tab>
+      </p-tablist>
+      <p-tabpanels>
+        <p-tabpanel value="0">
+          <div class="grid pt-2">
+            <div class="col-12 md:col-6 field"><label class="font-bold">Nombre Comercial*</label><input pInputText formControlName="tradename" /></div>
+            <div class="col-12 md:col-6 field"><label class="font-bold">Nombre Fiscal</label><input pInputText formControlName="fiscal_name" /></div>
+            <div class="col-12 field"><label class="font-bold">Dirección</label><textarea pInputTextarea formControlName="address" rows="2"></textarea></div>
+          </div>
+        </p-tabpanel>
+        <p-tabpanel value="1">
+          <div class="grid pt-2">
+            <div class="col-12 md:col-6 field"><label class="font-bold">Persona de Contacto*</label><input pInputText formControlName="contact_person" /></div>
+            <div class="col-12 md:col-6 field"><label class="font-bold">Móvil*</label><input pInputText formControlName="mobile" /></div>
+            <div class="col-12 field"><label class="font-bold">Email</label><input pInputText formControlName="email" /></div>
+          </div>
+        </p-tabpanel>
+        <p-tabpanel value="2">
+          <div class="field pt-2"><label class="font-bold">Información de Cuentas</label><textarea pInputTextarea formControlName="bank_data" rows="5"></textarea></div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+    <div class="flex justify-content-end gap-2 pt-4 border-top-1 border-gray-100 mt-2">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="isModalVisible.set(false)"></p-button>
+      <p-button label="Guardar" severity="primary" type="submit" [disabled]="providerForm.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>

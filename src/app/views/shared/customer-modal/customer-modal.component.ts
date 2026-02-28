@@ -1,44 +1,80 @@
-import {Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Subscription} from "rxjs";
+import { Component, OnInit, signal, computed, inject, output, model, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {MunicipalityService} from "../../system/services/municipality.service";
-import {CodeActivitiesService} from "../../system/services/codigoActividades.service";
+// PrimeNG 21 Standalone Components
+import { DialogModule } from 'primeng/dialog';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { InputTextModule } from 'primeng/inputtext';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
+import { RippleModule } from 'primeng/ripple';
+import { TooltipModule } from 'primeng/tooltip';
 
-import {Customer} from "../../system/models/customer.model";
-import {Municipality} from "../../system/models/municipality.model";
-import {CodeActivities} from "../../system/models/codeActivities.model";
+// Services
+import { MunicipalityService } from "../../system/services/municipality.service";
+import { CodeActivitiesService } from "../../system/services/codigoActividades.service";
+
+// Models
+import { Customer } from "../../system/models/customer.model";
+import { Municipality } from "../../system/models/municipality.model";
 
 @Component({
   selector: 'app-customer-modal',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    DialogModule,
+    AutoCompleteModule,
+    InputTextModule,
+    ToggleSwitchModule,
+    ButtonModule,
+    SelectModule,
+    RippleModule,
+    TooltipModule
+  ],
   templateUrl: './customer-modal.component.html',
   styleUrls: ['./customer-modal.component.scss']
 })
-export class CustomerModalComponent implements OnInit, OnDestroy {
-  @Output() sendCustomer = new EventEmitter<Customer>();
-  // @ts-ignore
-  customerForm: FormGroup;
-  isModalVisible = false;
-  customerId = 0;
-  customerIsActive = true;
-  uniqueitam = false;
-  modalTitle: string | undefined;
-  // @ts-ignore
-  subscriptions: Subscription[] = [];
-  municipalities: Municipality[] = [];
-  codeActivities: CodeActivities[] = [];
-  states: Municipality[] = [];
-  cities: Municipality[] = [];
-  filteredCodeActivitie: CodeActivities[] = [];
+export class CustomerModalComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly municipalityService = inject(MunicipalityService);
+  private readonly codeActivitiesService = inject(CodeActivitiesService);
 
-  constructor(
-    private fb: FormBuilder,
-    private service: MunicipalityService,
-    private serviceActivities: CodeActivitiesService,
-  ) {
+  sendCustomer = output<Customer>();
+
+  isModalVisible = model(false);
+  customerId = signal(0);
+  customerIsActive = signal(true);
+  modalTitle = signal<string>('Agregar cliente');
+  
+  municipalities = toSignal(this.municipalityService.selectMunicipalities(), { initialValue: [] });
+  codeActivities = toSignal(this.codeActivitiesService.selectCodeActivities(), { initialValue: [] });
+
+  states = computed(() => {
+    const list = this.municipalities();
+    return list.filter((m, i, arr) => arr.findIndex(e => e.state === m.state) === i);
+  });
+
+  cities = signal<Municipality[]>([]);
+  filteredCodeActivities = signal<any[]>([]);
+
+  customerForm!: FormGroup;
+
+  constructor() {
+    this.initForm();
   }
 
   ngOnInit(): void {
+    this.municipalityService.getMunicipalities();
+    this.codeActivitiesService.getCodeActivities();
+  }
+
+  private initForm(): void {
     this.customerForm = this.fb.group({
       address: ['', [Validators.required]],
       alias: [''],
@@ -46,7 +82,7 @@ export class CustomerModalComponent implements OnInit, OnDestroy {
       codeActivitie: [null],
       commercialBusiness: [''],
       codeCommercialBusiness: [''],
-      country: [''],
+      country: ['El Salvador'],
       departmentAddress: ['', Validators.required],
       dui: [''],
       email: ['', [Validators.email]],
@@ -60,202 +96,61 @@ export class CustomerModalComponent implements OnInit, OnDestroy {
       phoneHome: [''],
     });
 
-    this.service.getMunicipalities(); 
-    this.serviceActivities.getCodeActivities();
-    this.subscriptions[0] = this.service.selectMunicipalities().subscribe(municipalities => this.getStates(municipalities));
-    this.subscriptions[1] = this.serviceActivities.selectCodeActivities().subscribe(codeActivities => this.codeActivities = codeActivities);    
+    this.customerForm.get('departmentAddress')?.valueChanges.subscribe(state => {
+      this.cities.set(state ? this.municipalities().filter(m => m.state === state) : []);
+    });
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-  }
-
-  toggleModal(customer: Customer | undefined = undefined): void {
-    this.isModalVisible = !this.isModalVisible;
+  toggleModal(customer?: Customer): void {
     if (customer) {
-      this.customerId = customer.id;
-      this.customerIsActive = customer.status;
-      this.modalTitle = 'Editar cliente';
+      this.customerId.set(customer.id);
+      this.customerIsActive.set(customer.status);
+      this.modalTitle.set('Editar cliente');
       this.setFormData(customer);
     } else {
-      this.customerId = 0;
-      this.customerIsActive = true;
-      this.modalTitle = 'Agregar cliente';
+      this.customerId.set(0);
+      this.customerIsActive.set(true);
+      this.modalTitle.set('Agregar cliente');
+      this.customerForm.reset({ country: 'El Salvador', isRetentionTax: false, IsMajorTaxpayer: false });
     }
+    this.isModalVisible.set(true);
   }
 
-  handleModalChange(event: boolean): void {
-    this.isModalVisible = event;
-
-    if (!event) {
-      this.cities = [];
-      this.customerForm.reset();
-      this.customerId = 0;
-      this.customerIsActive = true;
-    }
-  }
-
-  onSelectChange(event: any): void {
-    const selectedValue = event.Codigo;
-    const descripcion = this.codeActivities.filter(m => m.Codigo === selectedValue);
+  private setFormData(customer: Customer): void {
     this.customerForm.patchValue({
-      commercialBusiness: descripcion[0].Descipcion,
-      codeCommercialBusiness: selectedValue,
-    });
-    console.log(selectedValue, descripcion);
-    // Elimina el panel del autocomplete forzosamente
-    setTimeout(() => {
-      // Eliminar cualquier panel de autocompletado visible usando el selector específico
-      const panels = document.querySelectorAll('.p-autocomplete-panel');
-      panels.forEach(panel => {
-        (panel as HTMLElement).remove(); // Elimina completamente el elemento del DOM
-      });
-      
-      // Como respaldo, también intenta ocultar o remover cualquier elemento relacionado
-      const overlays = document.querySelectorAll('.p-component-overlay');
-      overlays.forEach(overlay => {
-        (overlay as HTMLElement).remove();
-      });
-      
-      // Asegúrate de que el documento tenga el foco en otro elemento
-      document.body.focus();
-    }, 0);
-  }
-
-  filterCodeActivitie(event: any): void {
-    const query = event.query;
-    const filtered = query.trim().length > 0 
-      ? this.codeActivities.filter(c => c.Descipcion.trim().toLowerCase().includes(query.trim().toLowerCase())) 
-      : [];
-      
-    // Crear un campo combinado para mostrar
-    this.filteredCodeActivitie = filtered.map(item => ({
-      ...item,
-      displayField: `${item.Codigo} - ${item.Descipcion}` // Campo combinado
-    }));
-  }
-
-  onClearCodeActivitie(): void {
-    this.customerForm.patchValue({
-      codeActivitie: null,
-      commercialBusiness: '',
-      codeCommercialBusiness: ''
-    });
-  }
-
-  setFormData(customer: Customer): void {
-    debugger;
-    this.customerForm.patchValue({
-      address: customer.address === 'null' ? null : customer.address,
-      alias: customer.alias === 'null' ? null : customer.alias,
-      businessName: customer.businessName === 'null' ? null : customer.businessName,
-      country: customer.country === 'null' ? null : customer.country,
-      departmentAddress: customer.departmentAddress === 'null' ? null : customer.departmentAddress,
-      dui: customer.dui === 'null' ? null : customer.dui,
-      email: customer.email === 'null' ? null : customer.email,
+      address: customer.address !== 'null' ? customer.address : '',
+      alias: customer.alias !== 'null' ? customer.alias : '',
+      businessName: customer.businessName !== 'null' ? customer.businessName : '',
+      country: customer.country !== 'null' ? customer.country : 'El Salvador',
+      departmentAddress: customer.departmentAddress !== 'null' ? customer.departmentAddress : '',
+      dui: customer.dui !== 'null' ? customer.dui : '',
+      email: customer.email !== 'null' ? customer.email : '',
       isRetentionTax: customer.isRetentionTax,
       IsMajorTaxpayer: customer.isMajorTaxpayer,
-      mobile: customer.mobile === 'null' ? null : customer.mobile,
-      municipality: customer.municipality === 'null' ? null : customer.municipality,
-      name: customer.name === 'null' ? null : customer.name,
-      nit: customer.nit === 'null' ? null : customer.nit,
-      nrc: customer.nrc === 'null' ? null : customer.nrc,
-      phoneHome: customer.phoneHome === 'null' ? null : customer.phoneHome,
+      mobile: customer.mobile !== 'null' ? customer.mobile : '',
+      municipality: customer.municipality !== 'null' ? customer.municipality : '',
+      name: customer.name !== 'null' ? customer.name : '',
+      nit: customer.nit !== 'null' ? customer.nit : '',
+      nrc: customer.nrc !== 'null' ? customer.nrc : '',
+      phoneHome: customer.phoneHome !== 'null' ? customer.phoneHome : '',
     });
-
-    if (customer.departmentAddress !== 'null') {
-      this.getCities();
-    }
-    if (customer.codeCommercialBusiness) {
-      this.getCodeActivities(customer.codeCommercialBusiness);
-    }
   }
 
-  buildCustomer(): Customer {
-    const customer: Customer = this.customerForm.value;
-    customer.id = this.customerId;
-    customer.status = this.customerIsActive;
+  filterCodeActivity(event: any): void {
+    const query = event.query.toLowerCase();
+    const filtered = this.codeActivities().filter(c => c.Descipcion.toLowerCase().includes(query) || c.Codigo.includes(query));
+    this.filteredCodeActivities.set(filtered.map(item => ({ ...item, displayField: `${item.Codigo} - ${item.Descipcion}` })));
+  }
 
-    return customer;
+  onSelectActivity(event: any): void {
+    const act = event.value || event;
+    this.customerForm.patchValue({ commercialBusiness: act.Descipcion, codeCommercialBusiness: act.Codigo });
   }
 
   onSaveChanges(): void {
-    debugger;
-    const customer = this.buildCustomer();
-    this.sendCustomer.emit(customer);
-
-    this.isModalVisible = false;
-  }
-
-  getStates(municipalities: Municipality[]): void {
-    this.municipalities = municipalities;
-    this.states = this.municipalities.filter((m, i, arr) => arr.findIndex(e => e.state === m.state) === i);
-  }
-
-  getCities(): void {
-    const state = this.customerForm.controls['departmentAddress'].value;
-    this.cities = this.municipalities.filter(m => m.state === state);
-  }
-
-  getCodeActivities(selectedValue: string): void {
-    // Eliminar el debugger
-    if (!selectedValue || selectedValue === 'null') {
-      return;
-    }
-    
-    // Buscar la actividad correspondiente
-    const actividad = this.codeActivities.find(m => m.Codigo === selectedValue);
-    
-    if (actividad) {
-      // Crear un objeto con el campo combinado para la visualización
-      const actividadConDisplay = {
-        ...actividad,
-        displayField: `${actividad.Codigo} - ${actividad.Descipcion}`
-      };
-      
-      // 1. Actualizar los valores en el formulario
-      this.customerForm.patchValue({
-        commercialBusiness: actividad.Descipcion,
-        codeCommercialBusiness: selectedValue,
-        codeActivitie: actividadConDisplay // Establecer el objeto completo con displayField
-      });
-      
-      // 2. Asegurarse de que el p-autoComplete muestre el valor
-      setTimeout(() => {
-        // Forzar la actualización del control
-        this.customerForm.get('codeActivitie')?.updateValueAndValidity();
-        
-        // También actualizar el filteredCodeActivitie para asegurar que contenga el elemento
-        // Esto es importante para que la interfaz de usuario muestre el valor seleccionado
-        this.filteredCodeActivitie = [actividadConDisplay];
-        
-        // Disparar un evento de cambio para asegurar que la UI se actualice
-        const inputElement = document.getElementById('codeActivitie');
-        if (inputElement) {
-          // Crear y disparar un evento de input para forzar la actualización
-          const event = new Event('input', { bubbles: true });
-          inputElement.dispatchEvent(event);
-        }
-      }, 0);
-      
-      console.log('Actividad seleccionada por defecto:', actividadConDisplay);
+    if (this.customerForm.valid) {
+      this.sendCustomer.emit({ ...this.customerForm.value, id: this.customerId(), status: this.customerIsActive() });
+      this.isModalVisible.set(false);
     }
   }
-
-  compareState(originalState: string, selectedState: string): boolean {
-    if (originalState == null || selectedState == null) {
-      return false;
-    }
-
-    return originalState === selectedState;
-  }
-
-  compareCity(originalCity: string, selectedCity: string): boolean {
-    if (originalCity == null || selectedCity == null) {
-      return false;
-    }
-
-    return originalCity === selectedCity;
-  }
-
 }

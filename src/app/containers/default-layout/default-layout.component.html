@@ -1,56 +1,49 @@
-<!--sidebar-->
-<c-sidebar
-  #sidebar="cSidebar"
-  class="d-print-none sidebar sidebar-fixed"
-  unfoldable="false"
-  id="sidebar"
-  visible
->
+<div class="layout-wrapper flex flex-column min-h-screen bg-gray-50 overflow-hidden">
+  
+  <app-default-header class="z-5 shadow-2"></app-default-header>
 
-  <c-sidebar-brand
-    [brandFull]="{
-      src: 'assets/img/brand/logo-text.jpeg',
-      width: 200,
-      height: 80,
-      alt: 'Laboratorios Clinicos Adonys'
-    }"
-    [brandNarrow]="{
-      src: 'assets/img/brand/logo-small.png',
-      width: 46,
-      height: 46,
-      alt: 'Laboratorios Clinicos Adonys'
-    }"
-    routerLink="./"
-  >
-  </c-sidebar-brand>
+  <div class="layout-container flex-grow-1 flex overflow-hidden">
+    
+    <!-- Sidebar Navigation (PrimeNG 21 Drawer) -->
+    <p-drawer [(visible)]="sidebarVisible" 
+              [modal]="isMobile()" 
+              [dismissible]="isMobile()"
+              [showCloseIcon]="isMobile()"
+              [baseZIndex]="1000"
+              styleClass="layout-sidebar p-0 border-none bg-white shadow-3 overflow-hidden" 
+              [style]="{ width: '280px' }">
+      
+      <div class="sidebar-header p-4 bg-primary flex align-items-center gap-3 mb-2">
+        <p-avatar [label]="(user()?.name?.charAt(0) || 'U').toUpperCase()" 
+                  shape="circle" styleClass="bg-white text-primary font-bold shadow-2 border-2 border-white-alpha-20" size="large"></p-avatar>
+        <div class="flex flex-column">
+          <span class="text-white font-bold text-lg line-height-2 truncate w-10rem">{{ user()?.name || 'Administrador' }}</span>
+          <span class="text-white-alpha-70 text-xs font-semibold capitalize tracking-wide">{{ user()?.roles?.toLowerCase() }}</span>
+        </div>
+      </div>
 
-  <perfect-scrollbar [config]="perfectScrollbarConfig">
-    <!--  [perfectScrollbar]="perfectScrollbarConfig"-->
-    <c-sidebar-nav
-      [navItems]="navItems"
-    >
-    </c-sidebar-nav>
-  </perfect-scrollbar>
+      <p-scrollPanel [style]="{ width: '100%', height: 'calc(100vh - 120px)' }" styleClass="p-2 custom-scroll">
+        <div class="p-2">
+          <p-panelMenu [model]="navItems()" styleClass="nav-menu-premium border-none shadow-none bg-transparent"></p-panelMenu>
+        </div>
+        
+        <div class="mt-8 p-3 mx-2 border-round-xl bg-blue-50 border-1 border-blue-100 mb-5">
+          <h4 class="m-0 mb-2 text-blue-700 font-bold text-sm">Soporte Técnico</h4>
+          <p class="text-xs text-blue-600 line-height-3 m-0">soporte@ferreteriasalinas.com</p>
+          <p-button label="WhatsApp" icon="pi pi-whatsapp" severity="success" [text]="true" size="small" class="mt-2"></p-button>
+        </div>
+      </p-scrollPanel>
+    </p-drawer>
 
-  <c-sidebar-toggler
-    *ngIf="!sidebar.narrow"
-    toggle="unfoldable"
-    cSidebarToggle="sidebar"
-  ></c-sidebar-toggler>
+    <main class="layout-main flex-grow-1 flex flex-column overflow-auto transition-all transition-duration-300" 
+          [ngClass]="{ 'ml-0': isMobile(), 'sidebar-active': sidebarVisible() && !isMobile() }">
+      
+      <div class="p-4 md:p-5 flex-grow-1 fadein animation-duration-500">
+        <router-outlet></router-outlet>
+      </div>
 
-</c-sidebar>
+      <app-default-footer class="mt-auto px-4 py-3 bg-white border-top-1 border-gray-100 shadow-2"></app-default-footer>
+    </main>
 
-<!--main-->
-<div class="wrapper d-flex flex-column min-vh-100 bg-light dark:bg-transparent">
-  <!--app-header-->
-  <app-default-header class="mb-4 d-print-none header header-sticky" position="sticky"
-                      sidebarId="sidebar"></app-default-header>
-  <!--app-body-->
-  <div class="body flex-grow-1 px-3">
-    <c-container class="h-auto" fluid="true">
-      <router-outlet></router-outlet>
-    </c-container>
   </div>
-  <!--app footer-->
-  <app-default-footer></app-default-footer>
 </div>

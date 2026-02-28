@@ -1,141 +1,57 @@
-<!--Notifications-->
 <p-toast></p-toast>
-<!--Table-->
-<c-row ngPreserveWhitespaces>
-  <c-col xs="12">
-    <c-card class="mb-4">
-      <c-card-header>
-        <em class="fa-solid fa-hashtag"></em> <strong>Nº de resolución</strong>
-      </c-card-header>
-      <c-card-body>
-        <p-table #dt
-                 [loading]="loading"
-                 [value]="resolutions"
-                 [rowHover]="true"
-                 [paginator]="true"
-                 [rows]="10"
-                 [showCurrentPageReport]="true"
-                 [rowsPerPageOptions]="[10,25,50]"
-                 currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-                 dataKey="id"
-                 responsiveLayout="scroll"
-                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                 [globalFilterFields]="['name','description','active']"
-        >
-          <ng-template pTemplate="caption">
-            <div class="d-flex justify-content-between">
-              <button cButton color="dark" (click)="toggleModal()" pTooltip="Agregar resolución"
-                      tooltipPosition="right">
-                <em class="fa-solid fa-circle-plus pe-2"></em>Agregar
-              </button>
-              <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-                           placeholder="Buscar"/>
-                </span>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="header">
-            <tr>
-              <th scope="col" class="text-center">Opciones</th>
-              <th scope="col" class="text-center" pSortableColumn="resolution_number">Número de resolución
-                <p-sortIcon field="resolution_number"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="resolution_number">Código único
-                <p-sortIcon field="resolution_number_cu"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="start_number">Número inicial
-                <p-sortIcon field="start_number"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="end_number">Número final
-                <p-sortIcon field="end_number"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="start_number">Tipo de documento
-                <p-sortIcon field="bill_type"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="status">Estado
-                <p-sortIcon field="status"></p-sortIcon>
-              </th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-resolution>
-            <tr>
-              <td class="text-center">
-                <button cButton color="warning" size="sm" pTooltip="Editar resolución" tooltipPosition="top"
-                        (click)="toggleModal(resolution)"><em class="fa-solid fa-pen"></em></button>
-                <button cButton color="danger" size="sm" pTooltip="Desactivar resolución" tooltipPosition="top"
-                        *ngIf="resolution.status" (click)="changeStatus(resolution, false)">
-                  <em class="fa-solid fa-trash"></em></button>
-                <button cButton color="info" size="sm" pTooltip="Activar resolución" tooltipPosition="top"
-                        *ngIf="!resolution.status" (click)="changeStatus(resolution, true)">
-                  <em class="fa-solid fa-trash-arrow-up"></em></button>
-              </td>
-              <td>{{resolution.resolution_number}}</td>
-              <td>{{resolution.resolution_number_cu}}</td>
-              <td>{{resolution.start_number}}</td>
-              <td>{{resolution.end_number}}</td>
-              <td>{{resolution.bill_type}}</td>
-              <td class="text-center">
-                <c-badge
-                  [color]="utilitiesService.getFromStatus(resolution.status)">{{utilitiesService.getFromStatus(resolution.status, statusTypeData.NAME)}}</c-badge>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
-<!--Modal-->
-<c-modal size="xl" alignment="center" [visible]="isModalVisible" (visibleChange)="handleModalChange($event)">
-  <c-modal-header>
-    <h5 cModalTitle>{{modalTitle}}</h5>
-    <button cButtonClose (click)="toggleModal()"></button>
-  </c-modal-header>
-  <c-modal-body [formGroup]="resolutionForm">
-    <c-row class="mb-3">
-      <label [sm]="2" cCol cLabel="col" for="resolution_number">Número de serie*:</label>
-      <c-col [sm]="4">
-        <input cFormControl id="resolution_number" type="text" placeholder="Número de serie"
-               formControlName="resolution_number"/>
-        <c-form-feedback [valid]="false">El Número de serie es obligatorio</c-form-feedback>
-      </c-col>
-      <label [sm]="2" cCol cLabel="col" for="resolution_number_cu">Código único*:</label>
-      <c-col [sm]="4">
-        <input cFormControl id="resolution_number_cu" type="text" placeholder="Código único"
-               formControlName="resolution_number_cu"/>
-        <c-form-feedback [valid]="false">El Código único es obligatorio</c-form-feedback>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol cLabel="col" for="start_number">Número inicial:</label>
-      <c-col [sm]="4">
-        <input cFormControl id="start_number" type="number" placeholder="Número inicial"
-               formControlName="start_number"/>
-        <c-form-feedback [valid]="false">El número inicial es obligatorio</c-form-feedback>
-      </c-col>
-      <label [sm]="2" cCol cLabel="col" for="end_number">Número final:</label>
-      <c-col [sm]="4">
-        <input cFormControl id="end_number" type="number" placeholder="Número final" formControlName="end_number"/>
-        <c-form-feedback [valid]="false">El número final es obligatorio</c-form-feedback>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol cLabel="col" for="bill_type">Tipo de documento:</label>
-      <c-col [sm]="4">
-        <select sizing="sm" aria-label="Tipo de documento" cSelect formControlName="bill_type" id="bill_type"
-                [compareWith]="compareInvoiceType">
-          <option *ngFor="let invoiceType of invoiceTypes"
-                  [ngValue]="invoiceType.description">{{invoiceType.description}}</option>
-        </select>
-        <c-form-feedback [valid]="false">El tipo de documento es obligatorio</c-form-feedback>
-      </c-col>
-    </c-row>
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" (click)="toggleModal()"><em class="fa-solid fa-xmark"></em> Cerrar</button>
-    <button cButton color="primary" type="submit" [disabled]="resolutionForm.invalid" (click)="saveChanges()"><em
-      class="fa-solid fa-floppy-disk"></em> Guardar
-    </button>
-  </c-modal-footer>
-</c-modal>
+
+<div class="p-4 bg-gray-50 min-h-screen">
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
+    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+      <div class="flex align-items-center gap-3">
+        <i class="fa-solid fa-hashtag text-2xl"></i>
+        <span class="text-xl font-bold uppercase tracking-wider">Resoluciones Fiscales</span>
+      </div>
+      <p-button label="Nueva Resolución" icon="pi pi-plus" severity="success" (onClick)="toggleModal()"></p-button>
+    </div>
+
+    <div class="p-card-body p-4">
+      <p-table #dt [loading]="loading()" [value]="resolutions()" [rowHover]="true" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped shadow-1">
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="text-center">Opciones</th>
+            <th>Tipo</th>
+            <th>Número</th>
+            <th class="text-center">Inicio</th>
+            <th class="text-center">Fin</th>
+            <th class="text-center">Estado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-resolution>
+          <tr>
+            <td class="text-center"><p-button icon="pi pi-pencil" severity="warn" size="small" [rounded]="true" (onClick)="toggleModal(resolution)"></p-button></td>
+            <td>{{resolution.bill_type}}</td>
+            <td>{{resolution.resolution_number}}</td>
+            <td class="text-center">{{resolution.start_number}}</td>
+            <td class="text-center">{{resolution.end_number}}</td>
+            <td class="text-center">
+              <p-tag [value]="resolution.status ? 'Activa' : 'Inactiva'" [severity]="resolution.status ? 'success' : 'danger'" [rounded]="true"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="text-center p-5 text-gray-400 italic">No hay resoluciones registradas.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '500px'}">
+  <form [formGroup]="resolutionForm" (ngSubmit)="saveChanges()" class="p-fluid mt-3">
+    <div class="field mb-3"><label class="font-bold">Tipo*</label><p-select [options]="invoiceTypes" formControlName="bill_type" optionLabel="description" optionValue="description"></p-select></div>
+    <div class="field mb-3"><label class="font-bold">Número*</label><input pInputText formControlName="resolution_number" /></div>
+    <div class="field mb-3"><label class="font-bold">Número CU*</label><input pInputText formControlName="resolution_number_cu" /></div>
+    <div class="field mb-3"><label class="font-bold">Inicial*</label><p-inputNumber formControlName="start_number"></p-inputNumber></div>
+    <div class="field mb-3"><label class="font-bold">Final*</label><p-inputNumber formControlName="end_number"></p-inputNumber></div>
+    <div class="flex justify-content-end gap-2 pt-3 border-top-1 border-gray-100 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="isModalVisible.set(false)"></p-button>
+      <p-button label="Guardar" icon="pi pi-save" severity="primary" type="submit" [disabled]="resolutionForm.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>

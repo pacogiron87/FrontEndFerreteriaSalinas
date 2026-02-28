@@ -1,43 +1,76 @@
-import { Component, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { Router } from "@angular/router";
-import { Subscription } from "rxjs";
-import { HeaderComponent } from '@coreui/angular';
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from "@angular/router";
+import { toSignal } from '@angular/core/rxjs-interop';
 
+// PrimeNG Modules
+import { ToolbarModule } from 'primeng/toolbar';
+import { ButtonModule } from 'primeng/button';
+import { AvatarModule } from 'primeng/avatar';
+import { MenuModule } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
+import { TooltipModule } from 'primeng/tooltip';
+import { RippleModule } from 'primeng/ripple';
+
+// Services
 import { AuthService } from "src/app/core/services/auth.service";
-import { User } from "src/app/views/system/models/user.model";
 
 @Component({
   selector: 'app-default-header',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    ToolbarModule,
+    ButtonModule,
+    AvatarModule,
+    MenuModule,
+    TooltipModule,
+    RippleModule
+  ],
   templateUrl: './default-header.component.html',
-  styleUrls: ['./default-header.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./default-header.component.scss']
 })
-export class DefaultHeaderComponent extends HeaderComponent implements OnInit, OnDestroy {
-  @Input() sidebarId: string = "sidebar";
-  user: User | null = null;
-  subscription: Subscription | null = null;
+export class DefaultHeaderComponent {
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
-  constructor(
-    private router: Router,
-    private authService: AuthService,
-  ) {
-    super();
-  }
+  // User Signal from AuthService
+  readonly user = toSignal(this.authService.currentUser$());
 
-  ngOnInit(): void {
-    this.subscription = this.authService.currentUser$().subscribe(user => {
-      this.user = user;
-    });
-  }
+  // Sidebar visibility signal (managed via LayoutService in a real scenario)
+  readonly sidebarVisible = signal(true);
 
-  ngOnDestroy(): void {
-    if (this.subscription) {
-    this.subscription.unsubscribe();
-  }
-  }
+  // User menu items
+  readonly userMenuItems: MenuItem[] = [
+    {
+      label: 'Mi Perfil',
+      icon: 'pi pi-user',
+      command: () => this.goToProfile()
+    },
+    {
+      label: 'Configuración',
+      icon: 'pi pi-cog',
+      command: () => this.goToSettings()
+    },
+    { separator: true },
+    {
+      label: 'Cerrar Sesión',
+      icon: 'pi pi-sign-out',
+      command: () => this.logout()
+    }
+  ];
 
   logout(): void {
     this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  goToProfile(): void {
+    // Implement profile navigation
+  }
+
+  goToSettings(): void {
+    // Implement settings navigation
   }
 }
-

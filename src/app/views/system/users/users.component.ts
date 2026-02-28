@@ -1,100 +1,110 @@
-import {Component, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import { Component, OnInit, signal, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {NotificationService} from "../../../core/helpers/notification.service";
+// PrimeNG 21 Standalone Components
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
+import { TagModule } from 'primeng/tag';
+import { CardModule } from 'primeng/card';
+import { RippleModule } from 'primeng/ripple';
+import { SelectModule } from 'primeng/select';
 
-import {User} from "../models/user.model";
+// Services
+import { UserService } from "../services/user.service";
+import { NotificationService } from "src/app/core/helpers/notification.service";
+import { UtilitiesService } from "src/app/core/helpers/utilities.service";
+
+// Models & Enums
+import { User, RoleType } from "../models/user.model";
 
 @Component({
   selector: 'app-users',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    DialogModule,
+    TooltipModule,
+    ToastModule,
+    TagModule,
+    CardModule,
+    RippleModule,
+    SelectModule
+  ],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss']
 })
 export class UsersComponent implements OnInit {
-  // @ts-ignore
-  userForm: FormGroup;
-  users: User[] = [];
-  user: User | undefined;
+  private readonly fb = inject(FormBuilder);
+  private readonly userService = inject(UserService);
+  private readonly notificationService = inject(NotificationService);
+  public readonly utilitiesService = inject(UtilitiesService);
 
-  loading = true;
-  isModalVisible = false;
-  modalTitle: string | undefined;
+  readonly isModalVisible = signal(false);
+  readonly userId = signal<string>('0');
+  readonly userIsActive = signal(true);
+  readonly modalTitle = signal('Agregar usuario');
+  
+  readonly allUsers = toSignal(this.userService.selectUsers(), { initialValue: [] });
+  readonly loading = toSignal(this.userService.selectIsLoading(), { initialValue: false });
 
-  constructor(
-    private fb: FormBuilder,
-    private notificationService: NotificationService,
-  ) {
+  readonly roles = [
+    { label: 'Administrador', value: RoleType.ADMIN },
+    { label: 'Miembro / Vendedor', value: RoleType.MEMBER }
+  ];
+
+  userForm!: FormGroup;
+
+  constructor() {
+    this.initForm();
   }
 
-  ngOnInit(): void {
+  ngOnInit(): void { this.userService.getUsers(); }
+
+  private initForm(): void {
     this.userForm = this.fb.group({
-      name: ['', [Validators.required]],
-      address: ['', [Validators.required]],
-      dui: [''],
-      nit: [''],
-      nrc: [''],
-      commercialBusiness: [''],
-      alias: [''],
-      phoneHome: [''],
-      mobile: [''],
-      email: [''],
-      country: [''],
-      departmentAddress: [''],
-      municipality: [''],
-      businessName: [''],
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      userName: ['', [Validators.required]],
+      email: ['', [Validators.required, Validators.email]],
+      roles: [RoleType.MEMBER, [Validators.required]],
+      password: ['', this.userId() === '0' ? [Validators.required, Validators.minLength(6)] : []],
     });
   }
 
-  toggleModal(user: User | undefined = undefined): void {
-    this.isModalVisible = !this.isModalVisible;
-
+  toggleModal(user?: User): void {
     if (user) {
-      this.modalTitle = 'Editar usuario';
-      /*this.user = user;
-      const {name, description} = user;
-      this.userForm.setValue({name, description});*/
+      this.userId.set(user.id); this.userIsActive.set(user.active); this.modalTitle.set('Editar usuario');
+      this.userForm.patchValue({ name: user.name, userName: user.userName || user.username, email: user.email, roles: user.roles || user.role });
+      this.userForm.get('password')?.clearValidators();
     } else {
-      this.modalTitle = 'Agregar usuario';
+      this.userId.set('0'); this.userIsActive.set(true); this.modalTitle.set('Agregar usuario');
+      this.userForm.reset({ roles: RoleType.MEMBER });
+      this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
     }
-  }
-
-  handleModalChange(event: boolean): void {
-    this.isModalVisible = event;
-
-    if (!event) {
-      this.userForm.reset();
-      /*this.user.id = 0;
-      this.user.status = true;*/
-    }
+    this.userForm.get('password')?.updateValueAndValidity();
+    this.isModalVisible.set(true);
   }
 
   saveChanges(): void {
-    this.loading = true;
-    /*this.user.name = this.userForm.get('name')?.value;
-    this.user.description = this.userForm.get('description')?.value;*/
-
-    /*if (this.user.id > 0) {
-      const index = this.categories.map(c => c.id).indexOf(this.user.id);
-      this.categories[index] = {...this.user};
-      this.notificationService.success('Se edito la categoria correctamente');
-    } else {
-      this.user.id = this.categories.length + 1;
-      this.categories.push({...this.user});
-      this.notificationService.success('Se agrego la categoria correctamente');
+    if (this.userForm.valid) {
+      const val = this.userForm.value;
+      const user: User = { ...val, id: this.userId(), active: this.userIsActive() };
+      if (this.userId() !== '0') this.userService.updateUser(user);
+      else this.userService.createUser(user);
+      this.isModalVisible.set(false);
     }
-
-    this.categories = [...this.categories];*/
-    this.loading = false;
-    this.isModalVisible = false;
   }
 
-  changeStatus(user: User, active: boolean): void {
-    this.loading = true;
-    /*user.active = active;
-    const index = this.categories.map(c => c.id).indexOf(user.id);
-    this.categories[index] = {...user};*/
-    this.loading = false;
-    this.notificationService.success('Se cambio el estado correctamente');
-  }
-
+  changeStatus(user: User, active: boolean): void { this.userService.changeStatusUser(user.id, active); }
+  handleModalChange(event: boolean): void { this.isModalVisible.set(event); if (!event) { this.userForm.reset(); this.userId.set('0'); } }
 }

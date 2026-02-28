@@ -1,202 +1,143 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {CurrencyPipe} from "@angular/common";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {Subscription} from "rxjs";
+import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {NotificationService} from "src/app/core/helpers/notification.service";
-import {SaleService} from "src/app/views/income/services/sale.service";
-import {CategoryService} from "src/app/views/expenses/services/category.service";
-import {SalesService} from "../services/sales.service";
-import {UtilitiesService} from "src/app/core/helpers/utilities.service";
+// PrimeNG 21 Standalone Components
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { DatePickerModule } from 'primeng/datepicker';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
+import { BadgeModule } from 'primeng/badge';
+import { CardModule } from 'primeng/card';
+import { RippleModule } from 'primeng/ripple';
+import { TabsModule } from 'primeng/tabs';
+import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
 
-import {Category} from "src/app/views/expenses/models/category.model";
-import {BillDetail} from "src/app/views/income/models/bill-detail.model";
-import {Bill} from "src/app/views/income/models/bill.model";
-import {Sale} from "src/app/views/income/models/sale.model";
-import {StatusTypeData} from "src/app/core/enums/status-type-data.enum";
-import {LocationService} from "src/app/views/expenses/services/location.service";
-import {Location} from "src/app/views/expenses/models/location.model";
+// Services
+import { NotificationService } from "src/app/core/helpers/notification.service";
+import { SaleService } from "src/app/views/income/services/sale.service";
+import { CategoryService } from "src/app/views/expenses/services/category.service";
+import { SalesService as MigratedSalesService } from "../services/sales.service";
+import { LocationService } from "src/app/views/expenses/services/location.service";
+import { UtilitiesService } from "src/app/core/helpers/utilities.service";
+
+// Models
+import { Category } from "src/app/views/expenses/models/category.model";
+import { BillDetail } from "src/app/views/income/models/bill-detail.model";
+import { Bill } from "src/app/views/income/models/bill.model";
+import { Sale } from "src/app/views/income/models/sale.model";
+import { Location } from "src/app/views/expenses/models/location.model";
 
 @Component({
-  selector: 'app-sales',
+  selector: 'app-sales-report',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    DatePickerModule,
+    DialogModule,
+    TooltipModule,
+    ToastModule,
+    BadgeModule,
+    CardModule,
+    RippleModule,
+    TabsModule,
+    SelectModule,
+    TagModule
+  ],
+  providers: [CurrencyPipe, DatePipe],
   templateUrl: './sales.component.html',
   styleUrls: ['./sales.component.scss']
 })
-export class SalesComponent implements OnInit, OnDestroy {
-  // @ts-ignore
-  tabIndex: number;
-  // @ts-ignore
-  searchForm: FormGroup;
-  // @ts-ignore
-  maxDate: Date;
-  searchInformation = {
-    customerName: '',
-    startDate: '',
-    endDate: '',
-    categoryName: 0,
-    location:0,
-  };
-  locationInformation={    
-    location: null,
-    
-}
-  locations: Location[] = [];
-  bills: Bill[] = [];
-  details: BillDetail[] = [];
-  sales: Sale[] = [];
-  statusTypeData = StatusTypeData;
-  loading = false;
-  subscriptions: Subscription[] = [];
-  categories: Category[] = [];
-  isModalVisible = false;
-  modalTitle: string | undefined;
-  initialCategory: Category = {
-    active: true,
-    description: "(Todos las categorias)",
-    id: 6,
-    name: "(Todos las categorias)",
-  };
+export class SalesReportComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly locationService = inject(LocationService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly categoryService = inject(CategoryService);
+  private readonly saleService = inject(SaleService);
+  private readonly migratedSalesService = inject(MigratedSalesService);
+  public readonly utilitiesService = inject(UtilitiesService);
+  private readonly currencyPipe = inject(CurrencyPipe);
 
-  constructor(
-    private fb: FormBuilder,
-    private locationService: LocationService,
-    private notificationService: NotificationService,
-    private categoryService: CategoryService,
-    private saleService: SaleService,
-    private salesService: SalesService,
-    public utilitiesService: UtilitiesService,
-    private currencyPipe: CurrencyPipe,
-  ) {
+  readonly tabIndex = signal(0);
+  readonly isModalVisible = signal(false);
+  readonly modalTitle = signal('');
+  readonly maxDate = signal(new Date());
+  
+  readonly sales = toSignal(this.saleService.selectFoundSales(), { initialValue: [] });
+  readonly bills = toSignal(this.migratedSalesService.selectSales(), { initialValue: [] });
+  readonly categories = toSignal(this.categoryService.selectCategories(), { initialValue: [] });
+  readonly locations = toSignal(this.locationService.selectLocations(), { initialValue: [] });
+  readonly loading = toSignal(this.saleService.selectIsLoading(), { initialValue: false });
+
+  readonly details = signal<BillDetail[]>([]);
+
+  readonly totalCurrentSales = computed(() => this.sales().reduce((acc, s) => acc + s.total_sale, 0));
+  readonly totalMigratedSales = computed(() => this.bills().reduce((acc, b) => acc + b.total, 0));
+
+  readonly totalMessage = computed(() => {
+    const total = this.tabIndex() === 0 ? this.totalCurrentSales() : this.totalMigratedSales();
+    return total > 0 ? `Importe total: ${this.currencyPipe.transform(total)}` : 'No hay ventas para calcular';
+  });
+
+  searchForm!: FormGroup;
+
+  constructor() {
+    this.initForm();
   }
 
   ngOnInit(): void {
-    this.maxDate = new Date();
-
-    this.searchForm = this.fb.group({
-      customerName: [''],
-      startDate: [''],
-      endDate: [''],
-      categoryName: [this.initialCategory],
-      location: [''],
-    });
     this.locationService.getLocations();
     this.categoryService.getCategories();
-    this.subscriptions[0] = this.saleService.selectFoundSales().subscribe((sales => [...this.sales] = sales));
-    this.subscriptions[1] = this.saleService.selectIsLoading().subscribe(isLoading => this.loading = isLoading);
-    this.subscriptions[2] = this.salesService.selectSales().subscribe(bills => [...this.bills] = bills);
-    this.subscriptions[3] = this.categoryService.selectCategories().subscribe(categories => this.categories = categories);
-    this.subscriptions[4] = this.locationService.selectLocations().subscribe(locations => this.locations = locations);
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  private initForm(): void {
+    this.searchForm = this.fb.group({
+      customerName: [''], startDate: [null], endDate: [null], category: [null], location: [null],
+    });
   }
 
-  setTabIndex(event: number): void {
-    this.tabIndex = event;
-  }
+  onTabChange(event: any): void { this.tabIndex.set(event.index); }
 
   search(): void {
-    this.searchInformation = this.searchForm.value;
-    let count = 0;
+    const val = this.searchForm.value;
+    if (!val.customerName?.trim() && !val.startDate && !val.endDate) { this.notificationService.warning('Llene al menos un campo.'); return; }
+    
+    const searchInfo = {
+      customerName: val.customerName || '',
+      startDate: val.startDate ? val.startDate : '',
+      endDate: val.endDate ? val.endDate : '',
+      categoryName: val.category?.id || 0,
+      location: val.location?.id || 0
+    };
 
-    if (this.searchInformation.customerName.trim().length === 0) {
-      count++;
-    }
-
-    if (this.searchInformation.startDate === '') {
-      count++;
-    }
-
-    if (this.searchInformation.endDate === '') {
-      count++;
-    }
-
-    if (count === 3) {
-      this.notificationService.warning('Debe llenar al menos un campo');
-      return;
-    }
-
-    if (this.searchInformation.startDate !== '' && this.searchInformation.endDate !== '') {
-      if (this.searchInformation.startDate > this.searchInformation.endDate) {
-        this.notificationService.warning('La fecha inicial no puede ser mayor que la fecha final');
-        return;
-      } else {
-        this.processSearch();
-        return;
-      }
-    }
-
-    this.processSearch();
+    if (this.tabIndex() === 0) this.saleService.searchSales(searchInfo);
+    else this.migratedSalesService.searchSales(searchInfo);
   }
 
-  processSearch(): void {
-    this.searchInformation.startDate =this.searchInformation.startDate;
-    this.searchInformation.endDate = this.searchInformation.endDate;
-    if (this.tabIndex === 0) {
-      this.saleService.searchSales(this.searchInformation);
-    } else {
-      this.salesService.searchSales(this.searchInformation);
+  seeDetails(bill?: Bill, sale?: Sale): void {
+    const invoiceNumber = bill ? bill.numero_Correlativo : sale?.invoice_number;
+    this.modalTitle.set(invoiceNumber === 0 ? 'Detalles' : `Factura #${invoiceNumber}`);
+    if (bill) this.details.set(bill.billingDetails);
+    else if (sale) {
+      this.details.set(sale.saleDetails.map(d => ({
+        idSalesDetailsMigration: 0, cantidad: d.quantity, descripcion: d.description_item,
+        idCliente: sale.customer_id, idDetalle: d.id, idTotalFactura: d.id_sale,
+        precio_Unitario: d.unit_price, ventas_Afectas: d.affected_sale,
+        ventas_Excentas: d.exception_sale, ventas_No_Sujetas: d.non_tax_sale,
+      })));
     }
+    this.isModalVisible.set(true);
   }
 
-  handleModalChange(event: boolean): void {
-    this.isModalVisible = event;
-  }
-
-  seeDetails(bill: Bill | null, sale: Sale | null): void {
-    const invoiceNumber = bill != null ? bill.numero_Correlativo : sale!.invoice_number;
-    this.modalTitle = invoiceNumber === 0 ? 'Detalles de la factura' : `Detalles de la factura #${invoiceNumber}`;
-    if (bill != null) {
-      this.details = bill.billingDetails;
-    } else {
-      const details: BillDetail[] = [];
-      sale!.saleDetails.forEach(detail => details.push({
-        idSalesDetailsMigration: 0,
-        cantidad: detail.quantity,
-        descripcion: detail.description_item,
-        idCliente: sale!.customer_id,
-        idDetalle: detail.id,
-        idTotalFactura: detail.id_sale,
-        precio_Unitario: detail.unit_price,
-        ventas_Afectas: detail.affected_sale,
-        ventas_Excentas: detail.exception_sale,
-        ventas_No_Sujetas: detail.non_tax_sale,
-      }));
-      this.details = details;
-    }
-    this.isModalVisible = true;
-  }
-
-  closeDetails(): void {
-    this.isModalVisible = false;
-    this.modalTitle = '';
-    this.details = [];
-  }
-
-  getTotalWithMessage(): string {
-    let total = 0;
-    let message = 'No hay ventas para calcular importe'
-
-    if (this.tabIndex === 0) {
-      this.sales.forEach(sale => total = total + sale.total_sale);
-    } else {
-      this.bills.forEach(bill => total = total + bill.total);
-    }
-
-    if (total > 0) {
-      message = `Importe total: ${this.currencyPipe.transform(total)}`;
-    }
-
-    return message;
-  }
-
-  compareCategory(originalCategory: Category, selectedCategory: Category): boolean {
-    if (originalCategory == null || selectedCategory == null) {
-      return false;
-    }
-
-    return originalCategory.id === selectedCategory.id;
-  }
-
+  closeDetails(): void { this.isModalVisible.set(false); this.details.set([]); }
 }

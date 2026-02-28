@@ -1,9 +1,3 @@
-declare module '@coreui/utils/src';
-
-declare module '@coreui/chartjs/dist/js/coreui-chartjs.js';
-
-declare module '*.json' {
-  const value: any;
-  export default value;
-}
-
+declare module 'numeros_to_words';
+declare module 'jsbarcode';
+declare module 'html2canvas';

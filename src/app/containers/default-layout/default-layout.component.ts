@@ -1,46 +1,74 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router } from "@angular/router";
-import { Subscription } from "rxjs";
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from "@angular/router";
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import { AuthService} from "../../core/services/auth.service";
+// PrimeNG 21 Standalone Components
+import { DrawerModule } from 'primeng/drawer';
+import { PanelMenuModule } from 'primeng/panelmenu';
+import { ButtonModule } from 'primeng/button';
+import { AvatarModule } from 'primeng/avatar';
+import { RippleModule } from 'primeng/ripple';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { TooltipModule } from 'primeng/tooltip';
+import { ProgressBarModule } from 'primeng/progressbar';
+
+// Custom Components
+import { DefaultHeaderComponent } from './default-header/default-header.component';
+import { DefaultFooterComponent } from './default-footer/default-footer.component';
+
+// Services
+import { AuthService } from "../../core/services/auth.service";
 import { NavigationService } from "../../core/services/navigation.service";
-import { INavDataWithRoles } from './_nav';
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    DrawerModule,
+    PanelMenuModule,
+    ButtonModule,
+    AvatarModule,
+    RippleModule,
+    ScrollPanelModule,
+    TooltipModule,
+    ProgressBarModule,
+    DefaultHeaderComponent,
+    DefaultFooterComponent
+  ],
   templateUrl: './default-layout.component.html',
+  styleUrls: ['./default-layout.component.scss']
 })
-export class DefaultLayoutComponent implements OnInit, OnDestroy {
-  public navItems: INavDataWithRoles[] = [];
-  private subscriptions: Subscription[] = [];
-  public perfectScrollbarConfig = {
-    suppressScrollX: true,
-  };
+export class DefaultLayoutComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
+  private readonly navigationService = inject(NavigationService);
 
-  constructor(
-    private router: Router,
-    private authService: AuthService,
-    private navigationService: NavigationService
-  ) {}
+  readonly sidebarVisible = signal(true);
+  readonly isMobile = signal(false);
+  
+  readonly navItems = toSignal(this.navigationService.filteredNavItems$, { initialValue: [] });
+  readonly user = toSignal(this.authService.currentUser$());
+  readonly isAuthenticated = toSignal(this.authService.isAuthenticated$(), { initialValue: true });
+
   ngOnInit(): void {
-    // Verificar autenticación
-    this.subscriptions.push(
-      this.authService.isAuthenticated$().subscribe(isAuth => {
-        if (!isAuth) {
-          this.router.navigate(['/login']);
-        }
-      })
-    );
-
-    // Obtener menú filtrado por roles
-    this.subscriptions.push(
-      this.navigationService.filteredNavItems$.subscribe(items => {
-        this.navItems = items;
-      })
-    );
+    if (!this.isAuthenticated()) {
+      this.router.navigate(['/login']);
+    }
+    this.checkScreenSize();
+    window.addEventListener('resize', () => this.checkScreenSize());
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  private checkScreenSize(): void {
+    this.isMobile.set(window.innerWidth < 992);
+    if (this.isMobile()) {
+      this.sidebarVisible.set(false);
+    }
+  }
+
+  toggleSidebar(): void {
+    this.sidebarVisible.update(v => !v);
   }
 }

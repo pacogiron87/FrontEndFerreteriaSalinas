@@ -1,41 +1,90 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Subscription} from "rxjs";
+import { Component, OnInit, signal, computed, inject, viewChild, effect } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {ProductModalComponent} from "src/app/views/shared/product-modal/product-modal.component";
+// PrimeNG Modules
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
+import { BadgeModule } from 'primeng/badge';
+import { CardModule } from 'primeng/card';
+import { RippleModule } from 'primeng/ripple';
+import { TagModule } from 'primeng/tag';
 
-import {CategoryService} from "../services/category.service";
-import {LocationService} from "../services/location.service";
-import {ProductService} from "../services/product.service";
-import {ProviderService} from "src/app/views/system/services/provider.service";
-import {UtilitiesService} from "src/app/core/helpers/utilities.service";
+// Shared Components
+import { ProductModalComponent } from "../../shared/product-modal/product-modal.component";
 
-import {Category} from "../models/category.model";
-import {Location} from "../models/location.model";
-import {Product} from "../models/product.model";
-import {Provider} from "src/app/views/system/models/provider.model";
+// Services
+import { CategoryService } from "../services/category.service";
+import { LocationService } from "../services/location.service";
+import { ProductService } from "../services/product.service";
+import { ProviderService } from "../../system/services/provider.service";
+import { UtilitiesService } from "src/app/core/helpers/utilities.service";
 
+// Models
+import { Product } from "../models/product.model";
 
 @Component({
   selector: 'app-products',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    TooltipModule,
+    ToastModule,
+    BadgeModule,
+    CardModule,
+    RippleModule,
+    TagModule,
+    ProductModalComponent
+  ],
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.scss']
 })
-export class ProductsComponent implements OnInit, OnDestroy {
-  @ViewChild(ProductModalComponent) productModal!: ProductModalComponent;
-  products: Product[] = [];
-  loading = true;
-  subscriptions: Subscription[] = [];
-  providers: Provider[] = [];
-  categories: Category[] = [];
-  locations: Location[] = [];
+export class ProductsComponent implements OnInit {
+  // Services
+  private readonly categoryService = inject(CategoryService);
+  private readonly locationService = inject(LocationService);
+  private readonly productService = inject(ProductService);
+  private readonly providerService = inject(ProviderService);
+  public readonly utilitiesService = inject(UtilitiesService);
 
-  constructor(
-    private categoryService: CategoryService,
-    private locationService: LocationService,
-    private productService: ProductService,
-    private providerService: ProviderService,
-    private service: UtilitiesService,
-  ) {
+  // ViewChilds with Signals
+  readonly productModal = viewChild(ProductModalComponent);
+
+  // Data from Store
+  readonly allProducts = toSignal(this.productService.selectProducts(), { initialValue: [] });
+  readonly categories = toSignal(this.categoryService.selectCategories(), { initialValue: [] });
+  readonly locations = toSignal(this.locationService.selectLocations(), { initialValue: [] });
+  readonly providers = toSignal(this.providerService.selectProviders(), { initialValue: [] });
+  readonly loading = toSignal(this.productService.selectIsLoading(), { initialValue: true });
+
+  // Computed Signal for Rich Products (mapped data for the UI)
+  readonly products = computed(() => {
+    const categoriesList = this.categories();
+    const providersList = this.providers();
+    const locationsList = this.locations();
+    
+    return this.allProducts().map(product => ({
+      ...product,
+      categoryName: categoriesList.find(c => Number(c.id) === Number(product.category_id))?.name || 'N/A',
+      providerName: providersList.find(p => Number(p.id) === Number(product.provider_id))?.tradename || 'N/A',
+      locationName: locationsList.find(l => Number(l.id) === Number(product.location_id))?.name || 'N/A',
+      isLowStock: product.stock <= product.minimum_stock
+    }));
+  });
+
+  constructor() {
+    effect(() => {
+      const savedProduct = toSignal(this.productService.selectSavedProduct())();
+      if (savedProduct) this.handleProductUpdate(savedProduct);
+    });
   }
 
   ngOnInit(): void {
@@ -43,17 +92,6 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.locationService.getLocations();
     this.productService.getAllProducts();
     this.providerService.getProviders();
-
-    this.subscriptions[0] = this.categoryService.selectCategories().subscribe(categories => this.categories = categories);
-    this.subscriptions[1] = this.locationService.selectLocations().subscribe(locations => this.locations = locations);
-    this.subscriptions[2] = this.productService.selectIsLoading().subscribe(isLoading => this.loading = isLoading);
-    this.subscriptions[3] = this.productService.selectProducts().subscribe(products => [...this.products] = products);
-    this.subscriptions[4] = this.productService.selectSavedProduct().subscribe(product => this.updateProduct(product));
-    this.subscriptions[5] = this.providerService.selectProviders().subscribe(providers => this.providers = providers);
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
   saveProduct(product: Product): void {
@@ -68,44 +106,20 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.productService.changeStatusProduct(product.id, active);
   }
 
-  updateProduct(product: Product): void {
-    if (product) {
-      const index = this.products.findIndex(p => p.id === product.id);
+  private handleProductUpdate(product: Product): void {
+    const products = [...this.allProducts()];
+    const index = products.findIndex(p => p.id === product.id);
 
-      const products = [...this.products];
-      if (index >= 0) {
-        if (!product.description) {
-          product = {...products[index]};
-          product.active = !product.active;
-          products[index] = product;
-          this.productService.updateProducts(products);
-        } else {
-          products[index] = product;
-          this.productService.updateProducts(products);
-        }
+    if (index >= 0) {
+      if (!product.description) {
+        products[index] = { ...products[index], active: !products[index].active };
       } else {
-        products.push(product);
-        this.productService.updateProducts(products);
+        products[index] = product;
       }
+    } else {
+      products.push(product);
     }
+    
+    this.productService.updateProducts(products);
   }
-
-  getProviderById(product: Product): string {
-    // @ts-ignore
-    const index = this.providers.findIndex(p => p.id === product.provider_id);
-    return index !== -1 ? this.providers[index].tradename : '';
-  }
-
-  getCategoryById(product: Product): string {
-    // @ts-ignore
-    const index = this.categories.findIndex(c => c.id === product.category_id);
-    return index !== -1 ? this.categories[index].name : '';
-  }
-
-  getLocationById(product: Product): string {
-    // @ts-ignore
-    const index = this.locations.findIndex(c => c.id === product.location_id);
-    return index !== -1 ? this.locations[index].name : '';
-  }
-
 }

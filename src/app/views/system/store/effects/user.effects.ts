@@ -1,21 +1,15 @@
-import {Injectable} from "@angular/core";
+import {Injectable, inject} from "@angular/core";
 import {catchError, map, mergeMap, of} from "rxjs";
-
 import {Actions, createEffect, ofType} from "@ngrx/effects";
-
 import * as actions from '../actions/user.actions';
-
 import {AuthRepository} from "src/app/views/auth/services/auth.repository";
 import {NotificationService} from "src/app/core/helpers/notification.service";
 
 @Injectable()
 export class UserEffects {
-  constructor(
-    private actions$: Actions,
-    private authRepository: AuthRepository,
-    private notificationService: NotificationService,
-  ) {
-  }
+  private readonly actions$ = inject(Actions);
+  private readonly authRepository = inject(AuthRepository);
+  private readonly notificationService = inject(NotificationService);
 
   authenticateUser$ = createEffect(
     () => this.actions$.pipe(
@@ -23,10 +17,10 @@ export class UserEffects {
       mergeMap(
         props => this.authRepository.authenticate(props.userName, props.password)
           .pipe(
-            map(res => actions.authenticateSuccess({authenticatedUser: res})),
+            map(res => actions.authenticateSuccess({user: res})),
             catchError(err => {
               this.notificationService.warning('Las credenciales ingresadas son inválidas');
-              return of(actions.authenticateFails({fails: err}));
+              return of(actions.authenticateFails({error: err}));
             })
           )
       )

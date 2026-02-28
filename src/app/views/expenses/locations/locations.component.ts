@@ -1,132 +1,149 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Subscription} from "rxjs";
+import { Component, OnInit, signal, inject, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {LocationService} from "../services/location.service";
-import {UtilitiesService} from "src/app/core/helpers/utilities.service";
+// PrimeNG Modules
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
+import { TagModule } from 'primeng/tag';
+import { CardModule } from 'primeng/card';
+import { RippleModule } from 'primeng/ripple';
 
-import {Location} from "../models/location.model";
-import {StatusTypeData} from "src/app/core/enums/status-type-data.enum";
+// Services
+import { LocationService } from "../services/location.service";
+import { UtilitiesService } from "src/app/core/helpers/utilities.service";
 
+// Models & Enums
+import { Location } from "../models/location.model";
 
 @Component({
   selector: 'app-locations',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    DialogModule,
+    TooltipModule,
+    ToastModule,
+    TagModule,
+    CardModule,
+    RippleModule
+  ],
   templateUrl: './locations.component.html',
   styleUrls: ['./locations.component.scss']
 })
-export class LocationsComponent implements OnInit, OnDestroy {
-  // @ts-ignore
-  locationForm: FormGroup;
-  locations: Location[] = [];
-  locationId = 0;
-  locationIsActive = true;
-  loading = true;
-  isModalVisible = false;
-  modalTitle: string | undefined;
-  subscriptions: Subscription[] = [];
-  statusTypeData = StatusTypeData;
+export class LocationsComponent implements OnInit {
+  // Services
+  private readonly fb = inject(FormBuilder);
+  private readonly locationService = inject(LocationService);
+  public readonly utilitiesService = inject(UtilitiesService);
 
-  constructor(
-    private fb: FormBuilder,
-    private locationService: LocationService,
-    public utilitiesService: UtilitiesService,
-  ) {
+  // Signals for state
+  readonly isModalVisible = signal(false);
+  readonly locationId = signal(0);
+  readonly locationIsActive = signal(true);
+  readonly modalTitle = signal('Agregar localidad');
+  
+  // Data from Store
+  readonly locations = toSignal(this.locationService.selectLocations(), { initialValue: [] });
+  readonly loading = toSignal(this.locationService.selectIsLoading(), { initialValue: true });
+
+  // Form
+  locationForm!: FormGroup;
+
+  constructor() {
+    this.initForm();
+
+    // Effect for store updates
+    effect(() => {
+      const saved = toSignal(this.locationService.selectSavedLocation())();
+      if (saved) this.handleLocationUpdate(saved);
+    });
   }
 
   ngOnInit(): void {
+    this.locationService.getAllLocations();
+  }
+
+  private initForm(): void {
     this.locationForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       description: [''],
     });
-
-    this.locationService.getAllLocations();
-    this.subscriptions[0] = this.locationService.selectLocations().subscribe(locations => [...this.locations] = locations);
-    this.subscriptions[1] = this.locationService.selectIsLoading().subscribe(isLoading => this.loading = isLoading);
-    this.subscriptions[2] = this.locationService.selectSavedLocation().subscribe(location => this.updateLocation(location));
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-  }
-
-  toggleModal(location: Location | undefined = undefined): void {
-    this.isModalVisible = !this.isModalVisible;
-
+  toggleModal(location?: Location): void {
     if (location) {
-      this.locationId = location.id;
-      this.locationIsActive = location.active;
-      this.modalTitle = 'Editar localidad';
-      this.setFormData(location);
+      this.locationId.set(location.id);
+      this.locationIsActive.set(location.active);
+      this.modalTitle.set('Editar localidad');
+      this.locationForm.patchValue({
+        name: location.name !== 'null' ? location.name : '',
+        description: location.description !== 'null' ? location.description : '',
+      });
     } else {
-      this.locationId = 0;
-      this.locationIsActive = true;
-      this.modalTitle = 'Agregar localidad';
-    }
-  }
-
-  handleModalChange(event: boolean): void {
-    this.isModalVisible = event;
-
-    if (!event) {
+      this.locationId.set(0);
+      this.locationIsActive.set(true);
+      this.modalTitle.set('Agregar localidad');
       this.locationForm.reset();
-      this.locationId = 0;
-      this.locationIsActive = true;
     }
+    this.isModalVisible.set(true);
   }
 
   saveChanges(): void {
-    const location = this.buildLocation();
+    if (this.locationForm.valid) {
+      const location: Location = {
+        ...this.locationForm.value,
+        id: this.locationId(),
+        active: this.locationIsActive()
+      };
 
-    if (this.locationId > 0) {
-      this.locationService.updateLocation(location);
-    } else {
-      this.locationService.createLocation(location);
+      if (this.locationId() > 0) {
+        this.locationService.updateLocation(location);
+      } else {
+        this.locationService.createLocation(location);
+      }
+      this.isModalVisible.set(false);
     }
-
-    this.isModalVisible = false;
   }
 
   changeStatus(location: Location, active: boolean): void {
     this.locationService.changeStatusLocation(location.id, active);
   }
 
-  updateLocation(location: Location): void {
-    if (location) {
-      const index = this.locations.findIndex(l => l.id === location.id);
+  private handleLocationUpdate(location: Location): void {
+    const list = [...this.locations()];
+    const index = list.findIndex(l => l.id === location.id);
 
-      const locations = [...this.locations];
-      if (index >= 0) {
-
-        if (!location.name) {
-          location = {...locations[index]};
-          location.active = !location.active;
-          locations[index] = location;
-          this.locationService.updateLocations(locations);
-        } else {
-          locations[index] = location;
-          this.locationService.updateLocations(locations);
-        }
-
+    if (index >= 0) {
+      if (!location.name) {
+        // Status toggle only
+        const updated = { ...list[index], active: !list[index].active };
+        list[index] = updated;
       } else {
-        locations.push(location);
-        this.locationService.updateLocations(locations);
+        // Full update
+        list[index] = location;
       }
+    } else {
+      list.push(location);
+    }
+    this.locationService.updateLocations(list);
+  }
+
+  handleModalChange(event: boolean): void {
+    this.isModalVisible.set(event);
+    if (!event) {
+      this.locationForm.reset();
+      this.locationId.set(0);
     }
   }
-
-  setFormData(location: Location): void {
-    this.locationForm.setValue({
-      name: location.name === 'null' ? null : location.name,
-      description: location.description === 'null' ? null : location.name,
-    })
-  }
-
-  buildLocation(): Location {
-    const location: Location = this.locationForm.value;
-    location.id = this.locationId;
-    location.active = this.locationIsActive;
-
-    return location;
-  }
-
 }

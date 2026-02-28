@@ -1,221 +1,72 @@
-<!--Notifications-->
-<p-toast xmlns="http://www.w3.org/1999/html"></p-toast>
-<!--Main form-->
-<c-row ngPreserveWhitespaces>
-  <c-col xs="12">
-    <c-card class="mb-4">
-      <c-card-header>
-        <em class="fa-solid fa-file-invoice-dollar"></em> <strong>Cuentas por cobrar</strong>
-      </c-card-header>
-      <c-card-body>
-        <c-row class="mb-3">
-          <label [sm]="1" cCol sizing="sm" cLabel="col" for="customer" class="pt-3">Cliente:</label>
-          <c-col [sm]="6" class="p-fluid">
-            <p-autoComplete
-              [(ngModel)]="customer"
-              [showEmptyMessage]="true"
-              [suggestions]="filteredCustomers"
-              (completeMethod)="filterCustomer($event)"
-              field="name"
-              [minLength]="2"
-              [forceSelection]="true"
-              [required]="true"
-              [showClear]="true"
-              (onSelect)="onSelectCustomer()"
-              (onClear)="onClearCustomer()"
-              id="customer" pTooltip="Digite el cliente a buscar" tooltipPosition="top"
-              emptyMessage="No se encontraron clientes con los términos de búsqueda"
-              placeholder="Ingrese el nombre del cliente para realizar la búsqueda"
-            ></p-autoComplete>
-          </c-col>
-          <c-col [sm]="2" class="pt-1">
-            <button cButton color="dark" (click)="addPayment()"
-                    pTooltip="Realizar abono al cliente seleccionado"
-                    tooltipPosition="right" *ngIf="isSelectedCustomer && pendingPayments.length > 0">
-              <em class="fa-solid fa-hand-holding-dollar pe-2"></em>Realizar abono
-            </button>
-          </c-col>
-        </c-row>
-        <!--Table-->
-        <p-table #dt
-                 [loading]="loading"
-                 [value]="pendingPayments"
-                 [rowHover]="true"
-                 [paginator]="true"
-                 [rows]="10"
-                 [showCurrentPageReport]="true"
-                 [rowsPerPageOptions]="[10,25,50]"
-                 sortField="created_at"
-                 [sortOrder]="-1"
-                 currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-                 dataKey="id"
-                 responsiveLayout="scroll"
-                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                 [globalFilterFields]="['invoice_type','customer_name','id','invoice_status','location_name','commercial_business']"
-        >
-          <ng-template pTemplate="caption">
-            <div class="d-flex justify-content-between">
+<p-toast></p-toast>
 
-              <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-                           placeholder="Buscar"/>
-                </span>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="header">
-            <tr>
-              <th scope="col" class="text-center">Opciones</th>
-              <th style="width: 3rem">Productos</th>
-              <th scope="col" class="text-center" pSortableColumn="id">Id
-                <p-sortIcon field="id"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="invoice_type">Tipo de documento
-                <p-sortIcon field="invoice_type"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="created_at">Fecha Venta
-                <p-sortIcon field="created_at"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="date_pay">Fecha Pago
-                <p-sortIcon field="date_pay"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="invoice_total">Importe
-                <p-sortIcon field="invoice_total"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="advance_payment">Anticipo
-                <p-sortIcon field="advance_payment"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="balance_payment">Saldo
-                <p-sortIcon field="balance_payment"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="invoice_number">Factura
-                <p-sortIcon field="invoice_number"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="customer_name">Nombre comercial
-                <p-sortIcon field="customer_name"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="customer_name">Nombre de negocio
-                <p-sortIcon field="customer_name"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="location_name">Localidad
-                <p-sortIcon field="location_name"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="comment">Observacion
-                <p-sortIcon field="comment"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="invoice_status">Estado de Venta
-                <p-sortIcon field="invoice_status"></p-sortIcon>
-              </th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-sale let-expanded="expanded">
-            <tr>
-              <td class="text-center">
-                <button cButton color="success" size="sm" pTooltip="Realizar abono a la venta seleccionada"
-                        tooltipPosition="right"
-                        (click)="addPayment(sale)">
-                  <em class="fa-solid fa-hand-holding-dollar"></em></button>
-              </td>
-              <td class="text-center">
-                <button type="button" pButton pRipple [pRowToggler]="sale"
-                        class="p-button-text p-button-rounded p-button-plain"
-                        [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></button>
-              </td>
-              <td class="text-center">{{sale.id}}</td>
-              <td class="text-center">{{sale.invoice_type}}</td>
-              <td class="text-center">{{utilitiesService.formatDate(sale.created_at, 'DD/MM/YYYY HH:mm')}}</td>
-              <td class="text-center">{{utilitiesService.formatDate(sale.date_pay, 'DD/MM/YYYY HH:mm')}}</td>
-              <td class="text-center">{{sale.invoice_total | currency}}</td>
-              <td class="text-center">{{sale.advance_payment | currency}}</td>
-              <td class="text-center">{{sale.balance_payment | currency}}</td>
-              <td class="text-center">{{sale.invoice_number}}</td>
-              <td class="text-center">{{sale.business_name ?? 'Cliente: ' + sale.customer_name}}</td>
-              <td class="text-center">{{sale.commercial_business}}</td>
-              <td class="text-center">{{sale.location_name}}</td>
-              <td class="text-center">{{sale.comment}}</td>
-              <td class="text-center">
-                <c-badge
-                  [color]="utilitiesService.getColorFromInvoiceStatus(sale.invoice_status)">{{sale.invoice_status}}</c-badge>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="rowexpansion" let-product>
-            <tr>
-              <td colspan="15">
-                <div class="p-3">
-                  <p-table [value]="product.saleDetails" dataKey="id">
-                    <ng-template pTemplate="header">
-                      <tr>
-                        <th pSortableColumn="description_item">Producto<p-sortIcon field="description_item"></p-sortIcon></th>
-                        <th pSortableColumn="quantity">Cantidad<p-sortIcon field="quantity"></p-sortIcon></th>
-                        <th pSortableColumn="unit_price">Precio unitario<p-sortIcon field="unit_price"></p-sortIcon></th>
-                      </tr>
-                    </ng-template>
-                    <ng-template pTemplate="body" let-detail>
-                      <tr>
-                        <td>{{detail.description_item}}</td>
-                        <td>{{detail.quantity}}</td>
-                        <td class="text-center">{{detail.unit_price | currency}}</td>
-                      </tr>
-                    </ng-template>
-                  </p-table>
-                </div>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage" let-sale>
-            <tr>
-              <td colspan="13">
-                No se encontraron registros
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
-<!--Payment modal-->
-<c-modal alignment="center" [visible]="isVisible" (visibleChange)="handleCancelChange($event)">
-  <c-modal-header>
-    <h5 cModalTitle>{{modalTitle}}</h5>
-    <button cButtonClose (click)="toggleClose()"></button>
-  </c-modal-header>
-  <c-modal-body>
-    <form cForm [formGroup]="paymentForm">
-      <c-row class="mb-3">
-        <label [sm]="4" cCol sizing="sm" cLabel="col">Ubicacion*:</label>
-        <c-col [sm]="8">
-          <select sizing="sm" aria-label="Ubicacion" cSelect formControlName="location">
-            <option *ngFor="let location of locations"
-                    [ngValue]="location">{{location.name}}</option>
-          </select>
-          <c-form-feedback [valid]="false">La ubicacion es obligatoria</c-form-feedback>
-        </c-col>
-      </c-row>
-      <c-row class="mb-3">
-        <label [sm]="4" cCol sizing="sm" cLabel="col">Abono*:</label>
-        <c-col [sm]="8">
-          <input cFormControl sizing="sm" id="payment" type="number" placeholder="Cantidad a abonar"
-                 formControlName="payment" min="0.01" step="0.01"
-                 pTooltip="Ingrese la cantidad que desea abonar" tooltipPosition="bottom"/>
-          <c-form-feedback [valid]="false">El abono es obligatorio y mayor a cero</c-form-feedback>
-        </c-col>
-      </c-row>
-      <c-row class="mb-3 justify-content-end">
-        <c-col [sm]="5" class="d-grid gap-2">
-          <button cButton color="primary" type="submit" pTooltip="Anular factura" tooltipPosition="bottom"
-                  [disabled]="paymentForm.invalid || loading"
-                  class="btn-modal-buttons mt-3"
-                  (click)="processPayment()"><em class="fa-solid fa-dollar"></em> Realizar abono
-          </button>
-        </c-col>
-        <c-col [sm]="5" class="d-grid gap-2">
-          <button cButton color="secondary" class="mt-3" (click)="toggleClose()"><em class="fa-solid fa-xmark"></em>
-            Cerrar
-          </button>
-        </c-col>
-      </c-row>
-    </form>
-  </c-modal-body>
-</c-modal>
+<div class="p-4 bg-gray-50 min-h-screen">
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
+    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+      <div class="flex align-items-center gap-3">
+        <i class="fa-solid fa-file-invoice-dollar text-2xl"></i>
+        <span class="text-xl font-bold uppercase tracking-wider">Cuentas por Cobrar</span>
+      </div>
+      @if (isSelectedCustomer()) {
+        <p-button label="Abono General" icon="pi pi-plus" severity="success" (onClick)="addPayment()"></p-button>
+      }
+    </div>
+
+    <div class="p-card-body p-4">
+      <div class="p-3 bg-gray-50 border-round-xl border-1 border-gray-200 mb-4 shadow-1">
+        <div class="grid align-items-center">
+          <div class="col-12 md:col-6">
+            <p-autoComplete [(ngModel)]="customer" [suggestions]="filteredCustomers()" 
+                            (completeMethod)="filterCustomer($event)" field="name" [minLength]="2"
+                            [forceSelection]="true" placeholder="Buscar cliente..."
+                            (onSelect)="onSelectCustomer($event)" (onClear)="onClearCustomer()"
+                            styleClass="w-full" inputStyleClass="w-full"></p-autoComplete>
+          </div>
+          <div class="col-12 md:col-6 text-right">
+            <span class="text-xs text-gray-500 uppercase block">Total Pendiente</span>
+            <span class="text-2xl font-bold text-red-600">{{ totalPending() | currency }}</span>
+          </div>
+        </div>
+      </div>
+
+      <p-table #dt [loading]="loading()" [value]="pendingPayments()" [rowHover]="true" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="text-center">Abonar</th>
+            <th pSortableColumn="created_at">Fecha <p-sortIcon field="created_at"></p-sortIcon></th>
+            <th>Cliente</th>
+            <th class="text-right">Importe</th>
+            <th class="text-right">Saldo</th>
+            <th class="text-center">Estado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-sale>
+          <tr>
+            <td class="text-center"><p-button icon="pi pi-dollar" severity="success" size="small" [rounded]="true" (onClick)="addPayment(sale)"></p-button></td>
+            <td>{{ utilitiesService.formatDate(sale.created_at, 'DD/MM/YYYY') }}</td>
+            <td>{{ sale.customer_name }}</td>
+            <td class="text-right">{{ sale.invoice_total | currency }}</td>
+            <td class="text-right font-bold text-red-600">{{ sale.balance_payment | currency }}</td>
+            <td class="text-center">
+              <p-tag [value]="sale.invoice_status" [severity]="utilitiesService.getColorFromInvoiceStatus(sale.invoice_status)" [rounded]="true"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="text-center p-5 text-gray-400">No se encontraron cuentas por cobrar pendientes.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [header]="modalTitle()" [(visible)]="isVisible" [modal]="true" [style]="{width: '450px'}">
+  <form [formGroup]="paymentForm" (ngSubmit)="processPayment()" class="p-fluid mt-3">
+    <div class="field mb-4"><label class="font-bold block">Sucursal*</label><p-select [options]="locations()" optionLabel="name" formControlName="location" placeholder="Seleccione sucursal"></p-select></div>
+    <div class="field mb-4"><label class="font-bold block text-green-600">Monto del Abono*</label><p-inputNumber formControlName="payment" mode="currency" currency="USD" [min]="0.01"></p-inputNumber></div>
+    <div class="flex justify-content-end gap-2 pt-3 border-top-1 border-gray-100 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="isVisible.set(false)"></p-button>
+      <p-button label="Registrar Abono" icon="pi pi-check-circle" severity="success" type="submit" [disabled]="paymentForm.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>

@@ -1,175 +1,131 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Subscription} from "rxjs";
+import { Component, OnInit, signal, inject, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {NotificationService} from "src/app/core/helpers/notification.service";
-import {ProviderService} from "../services/provider.service";
+// PrimeNG 21 Standalone Components
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
+import { TagModule } from 'primeng/tag';
+import { CardModule } from 'primeng/card';
+import { RippleModule } from 'primeng/ripple';
+import { TabsModule } from 'primeng/tabs';
 
-import {Provider} from "../models/provider.model";
+// Services
+import { ProviderService } from "../services/provider.service";
+import { NotificationService } from "src/app/core/helpers/notification.service";
+import { UtilitiesService } from "src/app/core/helpers/utilities.service";
 
+// Models
+import { Provider } from "../models/provider.model";
 
 @Component({
   selector: 'app-providers',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    DialogModule,
+    TooltipModule,
+    ToastModule,
+    TagModule,
+    CardModule,
+    RippleModule,
+    TabsModule
+  ],
   templateUrl: './providers.component.html',
   styleUrls: ['./providers.component.scss']
 })
-export class ProvidersComponent implements OnInit, OnDestroy {
-  // @ts-ignore
-  providerForm: FormGroup;
-  providers: Provider[] = [];
-  providerId = 0;
-  providerIsActive = true;
+export class ProvidersComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly providerService = inject(ProviderService);
+  private readonly notificationService = inject(NotificationService);
+  public readonly utilitiesService = inject(UtilitiesService);
 
-  loading = true;
-  isModalVisible = false;
-  modalTitle: string | undefined;
-  subscriptions: Subscription[] = [];
+  // Store Signals
+  readonly providers = toSignal(this.providerService.selectProviders(), { initialValue: [] });
+  readonly loading = toSignal(this.providerService.selectIsLoading(), { initialValue: true });
 
-  constructor(
-    private fb: FormBuilder,
-    private providerService: ProviderService,
-    private notificationService: NotificationService,
-  ) {
-  }
+  // Reaction Signal (Fixed NG0602)
+  private readonly savedProvider = toSignal(this.providerService.selectSavedProvider());
 
-  ngOnInit(): void {
-    this.providerForm = this.fb.group({
-      code: [''],
-      nrc: [''],
-      nit: [''],
-      fiscal_name: [''],
-      tradename: ['', [Validators.required]],
-      address: [''],
-      country: ['', [Validators.required]],
-      phone: [''],
-      mobile: [''],
-      contact_person: ['', [Validators.required]],
-      email: [''],
-      facebook: [''],
-      twitter: [''],
-      website: [''],
-      bank_data: [''],
+  readonly isModalVisible = signal(false);
+  readonly providerId = signal(0);
+  readonly providerIsActive = signal(true);
+  readonly modalTitle = signal('Agregar proveedor');
+  
+  providerForm!: FormGroup;
+
+  constructor() {
+    this.initForm();
+    
+    // Correct Signal usage
+    effect(() => {
+      const p = this.savedProvider();
+      if (p) this.handleProviderUpdate(p);
     });
-
-    this.providerService.getAllProviders();
-    this.subscriptions[0] = this.providerService.selectProviders().subscribe(providers => [...this.providers] = providers);
-    this.subscriptions[1] = this.providerService.selectIsLoading().subscribe(isLoading => this.loading = isLoading);
-    this.subscriptions[2] = this.providerService.selectSavedProvider().subscribe(provider => this.updateProvider(provider));
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  ngOnInit(): void { this.providerService.getAllProviders(); }
+
+  private initForm(): void {
+    this.providerForm = this.fb.group({
+      code: [''], nrc: [''], nit: [''], fiscal_name: [''], tradename: ['', [Validators.required]],
+      address: [''], country: ['El Salvador', [Validators.required]], phone: [''], mobile: [''],
+      contact_person: ['', [Validators.required]], email: ['', [Validators.email]],
+      facebook: [''], twitter: [''], website: [''], bank_data: [''],
+    });
   }
 
-  toggleModal(provider: Provider | undefined = undefined): void {
-    this.isModalVisible = !this.isModalVisible;
-
+  toggleModal(provider?: Provider): void {
     if (provider) {
-      this.providerId = provider.id;
-      this.providerIsActive = provider.active;
-      this.modalTitle = 'Editar proveedor';
+      this.providerId.set(provider.id); this.providerIsActive.set(provider.active); this.modalTitle.set('Editar proveedor');
       this.setFormData(provider);
     } else {
-      this.providerId = 0;
-      this.providerIsActive = true;
-      this.modalTitle = 'Agregar proveedor';
+      this.providerId.set(0); this.providerIsActive.set(true); this.modalTitle.set('Agregar proveedor');
+      this.providerForm.reset({ country: 'El Salvador' });
     }
+    this.isModalVisible.set(true);
   }
 
-  handleModalChange(event: boolean): void {
-    this.isModalVisible = event;
-
-    if (!event) {
-      this.providerForm.reset();
-      this.providerId = 0;
-      this.providerIsActive = true;
-    }
+  private setFormData(provider: Provider): void {
+    this.providerForm.patchValue({
+      code: provider.code !== 'null' ? provider.code : '', nrc: provider.nrc !== 'null' ? provider.nrc : '',
+      nit: provider.nit !== 'null' ? provider.nit : '', fiscal_name: provider.fiscal_name !== 'null' ? provider.fiscal_name : '',
+      tradename: provider.tradename !== 'null' ? provider.tradename : '', address: provider.address !== 'null' ? provider.address : '',
+      country: provider.country !== 'null' ? provider.country : 'El Salvador', phone: provider.phone !== 'null' ? provider.phone : '',
+      mobile: provider.mobile !== 'null' ? provider.mobile : '', contact_person: provider.contact_person !== 'null' ? provider.contact_person : '',
+      email: provider.email !== 'null' ? provider.email : '', facebook: provider.facebook !== 'null' ? provider.facebook : '',
+      twitter: provider.twitter !== 'null' ? provider.twitter : '', website: provider.website !== 'null' ? provider.website : '',
+      bank_data: provider.bank_data !== 'null' ? provider.bank_data : '',
+    });
   }
 
   saveChanges(): void {
-    const provider = this.buildProvider();
-
-    if (!this.isCompleteData(provider)) {
-      this.notificationService.warning('¡Debe colocar al menos un numero telefónico!');
-      return;
-    }
-
-    if (provider.id > 0) {
-      this.providerService.updateProvider(provider);
-    } else {
-      this.providerService.createProvider(provider);
-    }
-
-    this.isModalVisible = false;
-  }
-
-  changeStatus(provider: Provider, active: boolean): void {
-    this.providerService.changeStatusProvider(provider.id, active);
-  }
-
-  updateProvider(provider: Provider): void {
-    if (provider) {
-      const index = this.providers.findIndex(p => p.id === provider.id);
-
-      const providers = [...this.providers];
-      if (index >= 0) {
-        if (!provider.fiscal_name) {
-          provider = {...providers[index]};
-          provider.active = !provider.active;
-          providers[index] = provider;
-          this.providerService.updateProviders(providers);
-        } else {
-          providers[index] = provider;
-          this.providerService.updateProviders(providers);
-        }
-
-      } else {
-        providers.push(provider);
-        this.providerService.updateProviders(providers);
-      }
+    if (this.providerForm.valid) {
+      const provider: Provider = { ...this.providerForm.value, id: this.providerId(), active: this.providerIsActive() };
+      if (this.providerId() > 0) this.providerService.updateProvider(provider);
+      else this.providerService.createProvider(provider);
+      this.isModalVisible.set(false);
     }
   }
 
-  setFormData(provider: Provider): void {
-    this.providerForm.setValue({
-      code: provider.code === 'null' ? null : provider.code,
-      nrc: provider.nrc === 'null' ? null : provider.nrc,
-      nit: provider.nit === 'null' ? null : provider.nit,
-      fiscal_name: provider.fiscal_name === 'null' ? null : provider.fiscal_name,
-      tradename: provider.tradename === 'null' ? null : provider.tradename,
-      address: provider.address === 'null' ? null : provider.address,
-      country: provider.country === 'null' ? null : provider.country,
-      phone: provider.phone === 'null' ? null : provider.phone,
-      mobile: provider.mobile === 'null' ? null : provider.mobile,
-      contact_person: provider.contact_person === 'null' ? null : provider.contact_person,
-      email: provider.email === 'null' ? null : provider.email,
-      facebook: provider.facebook === 'null' ? null : provider.facebook,
-      twitter: provider.twitter === 'null' ? null : provider.twitter,
-      website: provider.website === 'null' ? null : provider.website,
-      bank_data: provider.bank_data === 'null' ? null : provider.bank_data,
-    });
+  changeStatus(provider: Provider, active: boolean): void { this.providerService.changeStatusProvider(provider.id, active); }
+
+  private handleProviderUpdate(p: Provider): void {
+    const list = [...this.providers()];
+    const idx = list.findIndex(x => x.id === p.id);
+    if (idx >= 0) list[idx] = p; else list.push(p);
+    this.providerService.updateProviders(list);
   }
 
-  buildProvider(): Provider {
-    const provider: Provider = this.providerForm.value;
-    provider.id = this.providerId;
-    provider.active = this.providerIsActive;
-
-    return provider;
-  }
-
-  isCompleteData(provider: Provider): boolean {
-    let count = 0;
-
-    if (provider.phone === null || provider.phone.trim().length < 8) {
-      count++;
-    }
-
-    if (provider.mobile === null || provider.mobile.trim().length < 8) {
-      count++;
-    }
-
-    return count >= 0 && count <= 1;
-  }
-
+  handleModalChange(event: boolean): void { this.isModalVisible.set(event); if (!event) { this.providerForm.reset(); this.providerId.set(0); } }
 }

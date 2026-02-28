@@ -1,280 +1,116 @@
-<!--Notifications-->
-<p-toast xmlns="http://www.w3.org/1999/html"></p-toast>
-<!--Main form-->
-<c-row ngPreserveWhitespaces>
-  <c-col xs="12">
-    <c-card class="mb-4">
-      <c-card-header>
-        <em class="fa-solid fa-basket-shopping"></em> <strong>Compras</strong>
-      </c-card-header>
-      <c-card-body>
-        <!--Table-->
-        <p-table #dt
-                 [loading]="loading"
-                 [value]="purchases"
-                 [rowHover]="true"
-                 [paginator]="true"
-                 [rows]="10"
-                 [showCurrentPageReport]="true"
-                 [rowsPerPageOptions]="[10,25,50]"
-                 sortField="id"
-                 [sortOrder]="-1"
-                 currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-                 dataKey="id"
-                 responsiveLayout="scroll"
-                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                 [globalFilterFields]="['tradename','description','active', 'invoice_format','invoice_number']"
-                 *ngIf="!isPurchaseActive && !isSeeDetails"
-        >
+<p-toast></p-toast>
+
+<div class="p-4 bg-gray-50 min-h-screen">
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
+    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+      <div class="flex align-items-center gap-3">
+        <i class="fa-solid fa-truck-ramp-box text-2xl"></i>
+        <span class="text-xl font-bold uppercase tracking-wider">Gestión de Compras / Entradas</span>
+      </div>
+      @if (!isPurchaseActive()) {
+        <p-button label="Nueva Compra" icon="pi pi-plus" severity="success" (onClick)="newPurchase()" pTooltip="Registrar entrada de mercancía" class="hidden md:block"></p-button>
+      }
+    </div>
+
+    <div class="p-card-body p-4">
+      @if (!isPurchaseActive()) {
+        <p-table #dt [loading]="loading()" [value]="purchases()" [rowHover]="true" [paginator]="true" [rows]="15" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped shadow-1" [globalFilterFields]="['tradename','comment']">
           <ng-template pTemplate="caption">
-            <div class="d-flex justify-content-between">
-              <button cButton color="dark" (click)="newPurchase()" pTooltip="Agregar compra" tooltipPosition="right">
-                <em class="fa-solid fa-circle-plus pe-2"></em>Agregar
-              </button>
-              <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-                           placeholder="Buscar"/>
-                </span>
+            <div class="flex flex-column md:flex-row justify-content-between align-items-center gap-3">
+              <p-button icon="pi pi-plus" severity="success" (onClick)="newPurchase()" class="md:hidden"></p-button>
+              <span class="p-input-icon-left w-full md:w-auto">
+                <i class="pi pi-search"></i>
+                <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar compras..." class="w-full md:w-25rem" />
+              </span>
             </div>
           </ng-template>
           <ng-template pTemplate="header">
             <tr>
-              <th scope="col" class="text-center">Opciones</th>
-              <th scope="col" class="text-center" pSortableColumn="created_at">Fecha
-                <p-sortIcon field="created_at"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="invoice_total">Importe
-                <p-sortIcon field="total"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="invoice_number">Factura
-                <p-sortIcon field="invoice_number"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="tradename">Nombre comercial
-                <p-sortIcon field="tradename"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="tradename">Nombre de negocio
-                <p-sortIcon field="tradename"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="advance_payment">Tipo de documento
-                <p-sortIcon field="invoice_format"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="location">Localidad
-                <p-sortIcon field="location"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="comment">Observacion
-                <p-sortIcon field="comment"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="invoice_status">Estado
-                <p-sortIcon field="active"></p-sortIcon>
-              </th>
+              <th pSortableColumn="created_at">Fecha <p-sortIcon field="created_at"></p-sortIcon></th>
+              <th pSortableColumn="total" class="text-right">Monto Total <p-sortIcon field="total"></p-sortIcon></th>
+              <th pSortableColumn="invoice_number">No. Documento <p-sortIcon field="invoice_number"></p-sortIcon></th>
+              <th pSortableColumn="tradename">Proveedor <p-sortIcon field="tradename"></p-sortIcon></th>
+              <th pSortableColumn="location">Localidad <p-sortIcon field="location"></p-sortIcon></th>
+              <th pSortableColumn="active" class="text-center">Estado <p-sortIcon field="active"></p-sortIcon></th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-purchase>
             <tr>
+              <td>{{ utilitiesService.formatDate(purchase.created_at, 'DD/MM/YYYY HH:mm') }}</td>
+              <td class="text-right font-bold text-primary">{{ purchase.total | currency }}</td>
+              <td class="text-center font-mono">{{ purchase.invoice_number || 'N/A' }}</td>
+              <td>{{ purchase.tradename }}</td>
+              <td>{{ purchase.location_name }}</td>
               <td class="text-center">
-                N/A
-                <!--<button cButton color="info" size="sm" pTooltip="Imprimir documento" tooltipPosition="top"
-                        (click)="printInvoice(sale)"
-                        *ngIf="sale.invoice_status && sale.invoice_status.trim() == 'Ingresada'">
-                  <em class="fa-solid fa-print"></em></button>
-                <button cButton color="danger" size="sm" pTooltip="Anular venta" tooltipPosition="top"
-                        (click)="cancelSale(sale)">
-                  <em class="fa-solid fa-trash"></em></button>-->
-              </td>
-              <td class="text-center">{{utilitiesService.formatDate(purchase.created_at, 'DD/MM/YYYY')}}</td>
-              <td class="text-center">{{purchase.total | currency}}</td>
-              <td class="text-center">{{purchase.invoice_number}}</td>
-              <td class="text-center">{{purchase.tradename}}</td>
-              <td class="text-center">{{purchase.tradename}}</td>
-              <td class="text-center">{{purchase.invoice_format}}</td>
-              <td class="text-center">{{purchase.location}}</td>
-              <td class="text-center">{{purchase.comment}}</td>
-              <td class="text-center">
-                <c-badge
-                  [color]="utilitiesService.getFromStatus(purchase.active)">{{utilitiesService.getFromStatus(purchase.active, statusTypeData.NAME)}}</c-badge>
+                <p-tag [value]="purchase.active ? 'Activa' : 'Anulada'" [severity]="purchase.active ? 'success' : 'warn'" [rounded]="true"></p-tag>
               </td>
             </tr>
           </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="6" class="text-center p-5 text-gray-400">No se encontraron registros de compras.</td></tr>
+          </ng-template>
         </p-table>
-        <!--Sale form-->
-        <form cForm *ngIf="isPurchaseActive" [formGroup]="purchaseForm">
-          <c-row class="mb-3">
-            <c-col [sm]="2">
-              <button cButton color="dark" (click)="returnPurchasesList()" pTooltip="Regresar al listado de compras"
-                      tooltipPosition="right">
-                <em class="fa-solid fa-arrow-left"></em> Regresar
-              </button>
-            </c-col>
-          </c-row>
-          <c-row class="mb-3">
-            <c-col [sm]="8">
-              <label cCol cLabel="col" sizing="sm" for="product" id="product-label">Producto*:</label><br>
-              <p-autoComplete formControlName="selectedProduct"
-                              [showEmptyMessage]="true" [suggestions]="filteredProducts"
-                              (completeMethod)="filterProduct($event)" field="description" [minLength]="2"
-                              [forceSelection]="true" [showClear]="true" [required]="true"
-                              (onSelect)="onSelectProduct($event)" (onClear)="onClearProduct()"
-                              [readonly]="products.length === 0" id="product" class="p-fluid"
-                              pTooltip="Digite el producto a buscar" tooltipPosition="bottom"
-                              emptyMessage="No se encontraron productos con los términos de búsqueda"
-                              placeholder="Ingrese el nombre del producto para realizar la búsqueda"></p-autoComplete>
-            </c-col>
-            <c-col [sm]="1" *ngIf="!isSelectedProduct" class="d-grid gap-2">
-              <button cButton color="info" (click)="productModal.toggleModal(undefined, true)" pTooltip="Crear nuevo producto"
-                      tooltipPosition="right" id="btn-add">
-                <em class="fa-solid fa-box"></em>
-              </button>
-            </c-col>
-            <c-col [sm]="2" *ngIf="isSelectedProduct">
-              <label cCol cLabel="col" sizing="sm" for="exists">Existencia actual:</label>
-              <input cFormControl sizing="sm" id="exists" readonly="true" type="text" placeholder="Existencias"
-                     formControlName="selectedProductStock"/>
-            </c-col>
-            <c-col [sm]="2" *ngIf="isSelectedProduct">
-              <label cCol cLabel="col" sizing="sm" for="price">Costo actual:</label>
-              <input cFormControl sizing="sm" id="price" readonly="true" type="text" placeholder="Precio"
-                     formControlName="selectedProductCost"/>
-            </c-col>
-          </c-row>
-          <c-row class="mb-3">
-            <c-col [sm]="3" *ngIf="isSelectedProduct">
-              <label cCol cLabel="col" sizing="sm" for="quantity">Cantidad a comprar*:</label>
-              <input cFormControl sizing="sm" id="quantity" type="number" placeholder="Ingrese la cantidad"
-                     formControlName="quantity" min="1"
-                     pTooltip="Cantidad minima de 1 producto" tooltipPosition="bottom"/>
-            </c-col>
-            <c-col [sm]="3" *ngIf="isSelectedProduct">
-              <label cCol cLabel="col" sizing="sm" for="unit_price">Costo unitario*:</label>
-              <input cFormControl sizing="sm" id="unit_price" type="number" placeholder="Costo del producto"
-                     formControlName="unitCost" min="0.01" step="0.01"
-                     pTooltip="Costo mínimo de $0.01" tooltipPosition="bottom"/>
-            </c-col>
-            <c-col [sm]="1" class="d-grid gap-2">
-              <br>
-              <button cButton color="success" (click)="addProductToPurchase()" pTooltip="Agregar producto"
-                      tooltipPosition="right" id="btn-add-product" *ngIf="isProductValidToAdd()">
-                <em class="fa-solid fa-plus"></em>
-              </button>
-            </c-col>
-            <c-col [sm]="2" [offset]="1" *ngIf="isProductValidToAdd()">
-              <label cCol cLabel="col" sizing="sm" for="total_cost">Costo total:</label>
-              <input cFormControl sizing="sm" id="total_cost" readonly="true" type="text" placeholder="Precio"
-                     [value]="getTotalCost()"/>
-            </c-col>
-          </c-row>
-          <!--Details-->
-          <c-row class="mb-3">
-            <p-table #dt
-                     [value]="productsToPurchase"
-                     [rowHover]="true"
-                     [paginator]="true"
-                     [rows]="10"
-                     [showCurrentPageReport]="true"
-                     [rowsPerPageOptions]="[10,25,50]"
-                     currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-                     dataKey="id"
-                     responsiveLayout="scroll"
-                     styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                     [globalFilterFields]="['description']"
-            >
-              <ng-template pTemplate="header">
-                <tr>
-                  <th scope="col" class="text-center">Opciones</th>
-                  <th scope="col" class="text-center" pSortableColumn="description">Descripción
-                    <p-sortIcon field="description"></p-sortIcon>
-                  </th>
-                  <th scope="col" class="text-center" pSortableColumn="quantity">Cantidad
-                    <p-sortIcon field="quantity"></p-sortIcon>
-                  </th>
-                  <th scope="col" class="text-center" pSortableColumn="price">Costo unitario
-                    <p-sortIcon field="cost"></p-sortIcon>
-                  </th>
-                  <th scope="col" class="text-center" pSortableColumn="price">Compras afectas
-                    <p-sortIcon field="total_cost"></p-sortIcon>
-                  </th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-product>
-                <tr>
-                  <td class="text-center">
-                    <button cButton color="danger" size="sm" pTooltip="Quitar producto" tooltipPosition="top"
-                            (click)="removeProduct(product)"><em class="fa-solid fa-trash"></em></button>
-                  </td>
-                  <td>{{product.description}}</td>
-                  <td pEditableColumn>
-                    <p-cellEditor>
-                      <ng-template pTemplate="input" class="p-fluid">
-                        <input pInputText type="number" [(ngModel)]="product.quantity" (blur)="onEditQuantity(product)"
-                               [ngModelOptions]="{standalone: true}" required min="1"
-                               pTooltip="Cantidad minima de 1 producto" tooltipPosition="top">
-                      </ng-template>
-                      <ng-template pTemplate="output">
-                        {{product.quantity}}
-                      </ng-template>
-                    </p-cellEditor>
-                  </td>
-                  <td pEditableColumn>
-                    <p-cellEditor>
-                      <ng-template pTemplate="input" class="p-fluid">
-                        <input pInputText type="number" [(ngModel)]="product.cost" (blur)="onEditCost(product)"
-                               [ngModelOptions]="{standalone: true}" required min="0.01" step="0.01"
-                               pTooltip="Costo mínimo de $0.01" tooltipPosition="top">
-                      </ng-template>
-                      <ng-template pTemplate="output">
-                        {{product.cost | currency}}
-                      </ng-template>
-                    </p-cellEditor>
-                  </td>
-                  <td>{{(product.quantity * product.cost).toFixed(2) | currency}}</td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="footer">
-                <tr>
-                  <td [colSpan]="4" class="text-end">Total</td>
-                  <td>{{getTotalPurchase() | currency}}</td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </c-row>
-          <c-row class="mb-3">
-            <c-col [sm]="6">
-              <label cCol cLabel="col" sizing="sm" for="comment">Comentarios:</label>
-              <textarea cFormControl sizing="sm" id="comment" type="text"
-                        placeholder="Ingrese los comentarios (opcional)"
-                        formControlName="comment" rows="3"
-                        pTooltip="Comentarios sobre la compra actual (opcional)" tooltipPosition="bottom"
-                        style="resize: none;"></textarea>
-            </c-col>
-            <c-col [sm]="2">
-              <label cCol sizing="sm" cLabel="col">Proveedor*:</label>
-              <select sizing="sm" aria-label="Proveedor" cSelect formControlName="provider">
-                <option *ngFor="let provider of providers" [ngValue]="provider">{{provider.tradename}}</option>
-              </select>
-              <c-form-feedback [valid]="false">El proveedor es obligatorio</c-form-feedback>
-            </c-col>
-            <c-col [sm]="2">
-              <label cCol sizing="sm" cLabel="col">Localidad*:</label>
-              <select sizing="sm" aria-label="Localidad" cSelect formControlName="location">
-                <option *ngFor="let location of locations" [ngValue]="location">{{location.name}}</option>
-              </select>
-              <c-form-feedback [valid]="false">La localidad es obligatoria</c-form-feedback>
-            </c-col>
-          </c-row>
-          <c-row class="mb-3" *ngIf="isValidToPurchase()">
-            <c-col class="d-grid gap-2 d-md-flex justify-content-md-end">
-              <button cButton color="primary" (click)="completePurchase()" pTooltip="Facturar la compra actual"
-                      tooltipPosition="left">
-                <em class="fa-solid fa-cash-register"></em> Realizar compra
-              </button>
-            </c-col>
-          </c-row>
+      }
+
+      @if (isPurchaseActive()) {
+        <form [formGroup]="purchaseForm" class="p-fluid">
+          <div class="flex align-items-center mb-4 gap-3">
+            <p-button icon="pi pi-arrow-left" label="Regresar" severity="secondary" (onClick)="returnPurchasesList()" class="w-auto"></p-button>
+            <h2 class="m-0 text-xl text-primary font-bold">Nueva Entrada de Mercancía</h2>
+          </div>
+
+          <div class="grid mb-4 bg-gray-50 p-4 border-round-xl border-1 border-gray-200">
+            <div class="col-12 md:col-4 field"><label class="font-bold text-sm block mb-1">Proveedor*</label>
+              <p-select [options]="providers()" optionLabel="tradename" formControlName="provider" [filter]="true"></p-select></div>
+            <div class="col-12 md:col-4 field"><label class="font-bold text-sm block mb-1">Bodega*</label>
+              <p-select [options]="locations()" optionLabel="name" formControlName="location"></p-select></div>
+            <div class="col-12 md:col-4 field"><label class="font-bold text-sm block mb-1">Comentarios</label>
+              <input pInputText formControlName="comment" /></div>
+          </div>
+
+          <div class="p-card shadow-1 mb-4 border-1 border-gray-200 surface-ground">
+            <div class="p-card-body p-3">
+              <div class="grid align-items-end">
+                <div class="col-12 md:col-5 field">
+                  <label class="font-bold text-sm block mb-1">Producto*</label>
+                  <div class="p-inputgroup">
+                    <p-autoComplete formControlName="selectedProduct" [suggestions]="filteredProducts()" 
+                                    (completeMethod)="filterProduct($event)" field="description" (onSelect)="onSelectProduct($event)"></p-autoComplete>
+                    <p-button icon="pi pi-plus" (onClick)="productModal()?.toggleModal(undefined, true)"></p-button>
+                  </div>
+                </div>
+                @if (isSelectedProduct()) {
+                  <div class="col-12 md:col-2 field"><label class="font-bold text-sm">Cantidad*</label><p-inputNumber formControlName="quantity" [min]="1"></p-inputNumber></div>
+                  <div class="col-12 md:col-2 field"><label class="font-bold text-sm">Costo*</label><p-inputNumber formControlName="unitCost" mode="currency" currency="USD"></p-inputNumber></div>
+                  <div class="col-12 md:col-1 mb-3"><p-button icon="pi pi-plus-circle" severity="success" (onClick)="addProductToPurchase()"></p-button></div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <p-table [value]="productsToPurchase()" styleClass="p-datatable-sm p-datatable-striped shadow-1">
+            <ng-template pTemplate="header">
+              <tr class="bg-gray-100"><th></th><th>Descripción</th><th class="text-center">Cant.</th><th class="text-right">Costo</th><th class="text-right font-bold">Total</th></tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-product>
+              <tr>
+                <td class="text-center"><p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeProduct(product)"></p-button></td>
+                <td>{{ product.description }}</td>
+                <td class="text-center"><p-inputNumber [(ngModel)]="product.quantity" [ngModelOptions]="{standalone: true}"></p-inputNumber></td>
+                <td class="text-right"><p-inputNumber [(ngModel)]="product.cost" [ngModelOptions]="{standalone: true}" mode="currency" currency="USD"></p-inputNumber></td>
+                <td class="text-right font-bold text-primary">{{ product.quantity * product.cost | currency }}</td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <tr class="bg-primary-reverse text-xl"><td [colSpan]="4" class="text-right font-bold py-3 uppercase">Total</td><td class="text-right font-bold text-primary py-3">{{ totalPurchase() | currency }}</td></tr>
+            </ng-template>
+          </p-table>
+
+          <div class="flex justify-content-end mt-4"><p-button label="Guardar Entrada" icon="pi pi-save" size="large" [disabled]="productsToPurchase().length === 0" (onClick)="completePurchase()"></p-button></div>
         </form>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
-<!--Modal-->
-<app-product-modal
-  (sendProduct)="saveNewProduct($event)"
-></app-product-modal>
+      }
+    </div>
+  </div>
+</div>
+
+<app-product-modal (sendProduct)="saveNewProduct($event)"></app-product-modal>

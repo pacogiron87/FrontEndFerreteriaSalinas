@@ -1,132 +1,109 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Subscription} from "rxjs";
+import { Component, OnInit, signal, inject, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {CategoryService} from "../services/category.service";
-import {UtilitiesService} from "src/app/core/helpers/utilities.service";
+// PrimeNG 21 Standalone Components
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
+import { TagModule } from 'primeng/tag';
+import { CardModule } from 'primeng/card';
+import { RippleModule } from 'primeng/ripple';
+import { SelectModule } from 'primeng/select';
 
-import {Category} from "../models/category.model";
-import {StatusTypeData} from "src/app/core/enums/status-type-data.enum";
+// Services
+import { CategoryService } from "../services/category.service";
+import { UtilitiesService } from "src/app/core/helpers/utilities.service";
 
+// Models & Enums
+import { Category } from "../models/category.model";
 
 @Component({
   selector: 'app-categories',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    DialogModule,
+    TooltipModule,
+    ToastModule,
+    TagModule,
+    CardModule,
+    RippleModule,
+    SelectModule
+  ],
   templateUrl: './categories.component.html',
   styleUrls: ['./categories.component.scss']
 })
-export class CategoriesComponent implements OnInit, OnDestroy {
-  // @ts-ignore
-  categoryForm: FormGroup;
-  categories: Category[] = [];
-  categoryId = 0;
-  categoryIsActive = true;
-  loading = true;
-  isModalVisible = false;
-  modalTitle: string | undefined;
-  subscriptions: Subscription[] = [];
-  statusTypeData = StatusTypeData;
+export class CategoriesComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly categoryService = inject(CategoryService);
+  public readonly utilitiesService = inject(UtilitiesService);
 
-  constructor(
-    private fb: FormBuilder,
-    private categoryService: CategoryService,
-    public utilitiesService: UtilitiesService,
-  ) {
+  readonly isModalVisible = signal(false);
+  readonly categoryId = signal(0);
+  readonly categoryIsActive = signal(true);
+  readonly modalTitle = signal('Agregar categoría');
+  
+  readonly categories = toSignal(this.categoryService.selectCategories(), { initialValue: [] });
+  readonly loading = toSignal(this.categoryService.selectIsLoading(), { initialValue: true });
+
+  categoryForm!: FormGroup;
+
+  constructor() {
+    this.initForm();
+    effect(() => {
+      const saved = toSignal(this.categoryService.selectSavedCategory())();
+      if (saved) this.handleCategoryUpdate(saved);
+    });
   }
 
-  ngOnInit(): void {
+  ngOnInit(): void { this.categoryService.getAllCategories(); }
+
+  private initForm(): void {
     this.categoryForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       description: [''],
     });
-
-    this.categoryService.getAllCategories();
-    this.subscriptions[0] = this.categoryService.selectCategories().subscribe(categories => [...this.categories] = categories);
-    this.subscriptions[1] = this.categoryService.selectIsLoading().subscribe(isLoading => this.loading = isLoading);
-    this.subscriptions[2] = this.categoryService.selectSavedCategory().subscribe(category => this.updateCategory(category));
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-  }
-
-  toggleModal(category: Category | undefined = undefined): void {
-    this.isModalVisible = !this.isModalVisible;
-
+  toggleModal(category?: Category): void {
     if (category) {
-      this.categoryId = category.id;
-      this.categoryIsActive = category.active;
-      this.modalTitle = 'Editar categoria';
-      this.setFormData(category);
+      this.categoryId.set(category.id); this.categoryIsActive.set(category.active); this.modalTitle.set('Editar categoría');
+      this.categoryForm.patchValue({ name: category.name !== 'null' ? category.name : '', description: category.description !== 'null' ? category.description : '' });
     } else {
-      this.categoryId = 0;
-      this.categoryIsActive = true;
-      this.modalTitle = 'Agregar categoria';
-    }
-  }
-
-  handleModalChange(event: boolean): void {
-    this.isModalVisible = event;
-
-    if (!event) {
+      this.categoryId.set(0); this.categoryIsActive.set(true); this.modalTitle.set('Agregar categoría');
       this.categoryForm.reset();
-      this.categoryId = 0;
-      this.categoryIsActive = true;
     }
+    this.isModalVisible.set(true);
   }
 
   saveChanges(): void {
-    const category = this.buildCategory();
-
-    if (this.categoryId > 0) {
-      this.categoryService.updateCategory(category);
-    } else {
-      this.categoryService.createCategory(category);
-    }
-
-    this.isModalVisible = false;
-  }
-
-  changeStatus(category: Category, active: boolean): void {
-    this.categoryService.changeStatusCategory(category.id, active);
-  }
-
-  updateCategory(category: Category): void {
-    if (category) {
-      const index = this.categories.findIndex(c => c.id === category.id);
-
-      const categories = [...this.categories];
-      if (index >= 0) {
-
-        if (!category.name) {
-          category = {...categories[index]};
-          category.active = !category.active;
-          categories[index] = category;
-          this.categoryService.updateCategories(categories);
-        } else {
-          categories[index] = category;
-          this.categoryService.updateCategories(categories);
-        }
-
-      } else {
-        categories.push(category);
-        this.categoryService.updateCategories(categories);
-      }
+    if (this.categoryForm.valid) {
+      const category: Category = { ...this.categoryForm.value, id: this.categoryId(), active: this.categoryIsActive() };
+      if (this.categoryId() > 0) this.categoryService.updateCategory(category);
+      else this.categoryService.createCategory(category);
+      this.isModalVisible.set(false);
     }
   }
 
-  setFormData(category: Category): void {
-    this.categoryForm.setValue({
-      name: category.name === 'null' ? null : category.name,
-      description: category.description === 'null' ? null : category.description,
-    });
+  changeStatus(category: Category, active: boolean): void { this.categoryService.changeStatusCategory(category.id, active); }
+
+  private handleCategoryUpdate(c: Category): void {
+    const list = [...this.categories()];
+    const idx = list.findIndex(x => x.id === c.id);
+    if (idx >= 0) { if (!c.name) list[idx] = { ...list[idx], active: !list[idx].active }; else list[idx] = c; }
+    else list.push(c);
+    this.categoryService.updateCategories(list);
   }
 
-  buildCategory(): Category {
-    const category: Category = this.categoryForm.value;
-    category.id = this.categoryId;
-    category.active = this.categoryIsActive;
-
-    return category;
-  }
-
+  handleModalChange(event: boolean): void { this.isModalVisible.set(event); if (!event) { this.categoryForm.reset(); this.categoryId.set(0); } }
 }

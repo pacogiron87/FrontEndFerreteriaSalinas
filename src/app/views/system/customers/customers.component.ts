@@ -1,73 +1,69 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {FormBuilder} from "@angular/forms";
-import {Subscription} from "rxjs";
+import { Component, OnInit, signal, inject, viewChild, effect } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {CustomerService} from "../services/customer.service";
-import {UtilitiesService} from "src/app/core/helpers/utilities.service";
+// PrimeNG Modules
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
+import { ToastModule } from 'primeng/toast';
+import { TagModule } from 'primeng/tag';
+import { CardModule } from 'primeng/card';
+import { RippleModule } from 'primeng/ripple';
 
-import {Customer} from "../models/customer.model";
-import {StatusTypeData} from "src/app/core/enums/status-type-data.enum";
+// Shared Components
+import { CustomerModalComponent } from "../../shared/customer-modal/customer-modal.component";
 
-import {CustomerModalComponent} from "src/app/views/shared/customer-modal/customer-modal.component";
+// Services
+import { CustomerService } from "../services/customer.service";
+import { UtilitiesService } from "src/app/core/helpers/utilities.service";
 
+// Models
+import { Customer } from "../models/customer.model";
 
 @Component({
   selector: 'app-customers',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    TooltipModule,
+    ToastModule,
+    TagModule,
+    CardModule,
+    RippleModule,
+    CustomerModalComponent
+  ],
   templateUrl: './customers.component.html',
   styleUrls: ['./customers.component.scss']
 })
-export class CustomersComponent implements OnInit, OnDestroy {
-  @ViewChild(CustomerModalComponent) customerModal!: CustomerModalComponent;
-  customers: Customer[] = [];
-  loading = true;
-  subscriptions: Subscription[] = [];
-  statusTypeData = StatusTypeData;
+export class CustomersComponent implements OnInit {
+  // Services
+  private readonly customerService = inject(CustomerService);
+  public readonly utilitiesService = inject(UtilitiesService);
 
-  constructor(
-    private fb: FormBuilder,
-    private customerService: CustomerService,
-    public utilitiesService: UtilitiesService,
-  ) {
+  // ViewChilds with Signals
+  readonly customerModal = viewChild(CustomerModalComponent);
+
+  // Data from Store (Signals)
+  readonly allCustomers = toSignal(this.customerService.selectCustomers(), { initialValue: [] });
+  readonly loading = toSignal(this.customerService.selectIsLoading(), { initialValue: true });
+
+  constructor() {
+    // Effect to handle real-time store updates
+    effect(() => {
+      const saved = toSignal(this.customerService.selectSavedCustomer())();
+      if (saved) this.handleCustomerUpdate(saved);
+    });
   }
 
   ngOnInit(): void {
     this.customerService.getCustomers();
-    this.subscriptions[0] = this.customerService.selectCustomers().subscribe(customers => this.customers = customers);
-    this.subscriptions[1] = this.customerService.selectIsLoading().subscribe(isLoading => this.loading = isLoading);
-    this.subscriptions[2] = this.customerService.selectSavedCustomer().subscribe(customer => this.updateCustomer(customer));
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-  }
-
-  changeStatus(customer: Customer, active: boolean): void {
-    const customerToUpdate = {...customer};
-    customerToUpdate.status = active;
-    this.customerService.updateCustomer(customerToUpdate);
-  }
-
-  updateCustomer(customer: Customer): void {
-    if (customer) {
-      const index = this.customers.findIndex(c => c.id === customer.id);
-
-      const customers = [...this.customers];
-      if (index >= 0) {
-        if (!customer.address) {
-          customer = {...customers[index]};
-          customer.status = !customer.status;
-          customers[index] = customer;
-          this.customerService.updateCustomers(customers);
-        } else {
-          customers[index] = customer;
-          this.customerService.updateCustomers(customers);
-        }
-
-      } else {
-        customers.push(customer);
-        this.customerService.updateCustomers(customers);
-      }
-    }
   }
 
   saveChanges(customer: Customer): void {
@@ -78,4 +74,27 @@ export class CustomersComponent implements OnInit, OnDestroy {
     }
   }
 
+  changeStatus(customer: Customer, active: boolean): void {
+    const updated = { ...customer, status: active };
+    this.customerService.updateCustomer(updated);
+  }
+
+  private handleCustomerUpdate(customer: Customer): void {
+    const list = [...this.allCustomers()];
+    const index = list.findIndex(c => c.id === customer.id);
+
+    if (index >= 0) {
+      if (!customer.address) {
+        // Simple status toggle
+        list[index] = { ...list[index], status: !list[index].status };
+      } else {
+        // Full update
+        list[index] = customer;
+      }
+    } else {
+      // New record
+      list.push(customer);
+    }
+    this.customerService.updateCustomers(list);
+  }
 }

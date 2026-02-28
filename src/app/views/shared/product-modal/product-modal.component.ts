@@ -1,218 +1,145 @@
-import {Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Subscription} from "rxjs";
+import { Component, OnInit, signal, computed, inject, output, model, viewChild, ElementRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {CategoryService} from "src/app/views/expenses/services/category.service";
-import {LocationService} from "src/app/views/expenses/services/location.service";
-import {ProviderService} from "src/app/views/system/services/provider.service";
-import {UtilitiesService} from "src/app/core/helpers/utilities.service";
+// PrimeNG 21 Standalone Components
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { SelectModule } from 'primeng/select';
+import { ButtonModule } from 'primeng/button';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { TooltipModule } from 'primeng/tooltip';
+import { RippleModule } from 'primeng/ripple';
 
-import {Category} from "src/app/views/expenses/models/category.model";
-import {Location} from "src/app/views/expenses/models/location.model";
-import {Product} from "src/app/views/expenses/models/product.model";
-import {Provider} from "src/app/views/system/models/provider.model";
+// Services
+import { CategoryService } from "src/app/views/expenses/services/category.service";
+import { LocationService } from "src/app/views/expenses/services/location.service";
+import { ProviderService } from "src/app/views/system/services/provider.service";
+import { UtilitiesService } from "src/app/core/helpers/utilities.service";
 
-import {environment} from "src/environments/environment";
-
+// Models & Env
+import { Category } from "src/app/views/expenses/models/category.model";
+import { Location } from "src/app/views/expenses/models/location.model";
+import { Product } from "src/app/views/expenses/models/product.model";
+import { Provider } from "src/app/views/system/models/provider.model";
+import { environment } from "src/environments/environment";
 
 @Component({
   selector: 'app-product-modal',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    DialogModule,
+    InputTextModule,
+    InputNumberModule,
+    SelectModule,
+    ButtonModule,
+    ToggleSwitchModule,
+    TooltipModule,
+    RippleModule
+  ],
   templateUrl: './product-modal.component.html',
   styleUrls: ['./product-modal.component.scss']
 })
-export class ProductModalComponent implements OnInit, OnDestroy {
-  @Output() sendProduct = new EventEmitter<Product>();
-  @ViewChild('fileImage') fileImage: ElementRef | undefined;
-  categories: Category[] = [];
-  isModalVisible = false;
-  locations: Location[] = [];
-  modalTitle: string | undefined;
-  // @ts-ignore
-  productForm: FormGroup;
-  productId = 0;
-  productIsActive = true;
-  providers: Provider[] = [];
-  subscriptions: Subscription[] = [];
-  // @ts-ignore
-  preview: string;
-  hideFields: boolean;
-  fromPurchases = false;
+export class ProductModalComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly categoryService = inject(CategoryService);
+  private readonly locationService = inject(LocationService);
+  private readonly providerService = inject(ProviderService);
+  public readonly utilitiesService = inject(UtilitiesService);
 
-  constructor(
-    private categoryService: CategoryService,
-    private fb: FormBuilder,
-    private locationService: LocationService,
-    private providerService: ProviderService,
-    private service: UtilitiesService,
-  ) {
-    this.hideFields = environment.hideFields;
+  sendProduct = output<Product>();
+
+  isModalVisible = model(false);
+  productId = signal(0);
+  productIsActive = signal(true);
+  modalTitle = signal('Agregar producto');
+  preview = signal<string | null>(null);
+  fromPurchases = signal(false);
+  hideFields = signal(environment.hideFields);
+
+  categories = toSignal(this.categoryService.selectCategories(), { initialValue: [] });
+  locations = toSignal(this.locationService.selectLocations(), { initialValue: [] });
+  providers = toSignal(this.providerService.selectProviders(), { initialValue: [] });
+
+  productForm!: FormGroup;
+  fileInput = viewChild<ElementRef>('fileImage');
+
+  constructor() {
+    this.initForm();
   }
 
   ngOnInit(): void {
-    this.productForm = this.fb.group({
-      brand_code: [''],
-      company_code: [''],
-      distributor_code: [''],
-      internal_code: [''],
-      barcode: [''],
-      description: ['', [Validators.required, Validators.minLength(5)]],
-      stock: [0],
-      minimum_stock: [0, [Validators.required, Validators.min(0)]],
-      cost: [0],
-      sale_price: [0, [Validators.required, Validators.min(0)]],
-      wholesale_price: [0],
-      discount: [0],
-      image: [null],
-      category_id: ['', [Validators.required]],
-      provider_id: ['', [Validators.required]],
-      location_id: ['', [Validators.required]],
-      is_exempt_product: [false],
-    });
-
     this.categoryService.getCategories();
     this.locationService.getLocations();
     this.providerService.getProviders();
-
-    this.subscriptions[0] = this.categoryService.selectCategories().subscribe(categories => this.categories = categories);
-    this.subscriptions[1] = this.locationService.selectLocations().subscribe(locations => this.locations = locations);
-    this.subscriptions[2] = this.providerService.selectProviders().subscribe(providers => this.providers = providers);
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  private initForm(): void {
+    this.productForm = this.fb.group({
+      brand_code: [''], company_code: [''], distributor_code: [''], internal_code: [''], barcode: [''],
+      description: ['', [Validators.required, Validators.minLength(5)]],
+      stock: [0], minimum_stock: [0, [Validators.required, Validators.min(0)]],
+      cost: [0], sale_price: [0, [Validators.required, Validators.min(0)]],
+      wholesale_price: [0], discount: [0], image: [null],
+      category_id: [null, [Validators.required]], provider_id: [null, [Validators.required]],
+      location_id: [null, [Validators.required]], is_exempt_product: [false],
+    });
   }
 
-  toggleModal(product: Product | undefined = undefined, fromPurchases = false): void {
-    this.isModalVisible = !this.isModalVisible;
-    this.fromPurchases = fromPurchases;
-
-    this.productForm.controls['stock'].setValidators(null);
-    this.productForm.controls['cost'].setValidators(null);
-    this.productForm.controls['sale_price'].setValidators(null);
-    this.productForm.controls['minimum_stock'].setValidators(null);
-   
-    this.productForm.controls['stock'].updateValueAndValidity();
-    this.productForm.controls['cost'].updateValueAndValidity();
-    this.productForm.controls['sale_price'].updateValueAndValidity();
-    this.productForm.controls['minimum_stock'].updateValueAndValidity();
-
+  toggleModal(product?: Product, fromPurchases = false): void {
+    this.fromPurchases.set(fromPurchases);
     if (product) {
-      this.productId = product.id;
-      this.productIsActive = product.active;
-      this.modalTitle = 'Editar producto';
+      this.productId.set(product.id);
+      this.productIsActive.set(product.active);
+      this.modalTitle.set('Editar producto');
       this.setFormData(product);
     } else {
-      this.productId = 0;
-      this.productIsActive = true;
-      this.modalTitle = 'Agregar producto';
-      this.setDefaultValuesDropdown();
+      this.productId.set(0); this.productIsActive.set(true); this.modalTitle.set('Agregar producto');
+      this.productForm.reset({ stock: 0, minimum_stock: 0, cost: 0, sale_price: 0, wholesale_price: 0, discount: 0, is_exempt_product: false });
     }
+    this.isModalVisible.set(true);
   }
 
-  setDefaultValuesDropdown(): void {
+  private setFormData(product: Product): void {
     this.productForm.patchValue({
-      category_id: null,
-    provider_id: null,
-    location_id: null,
+      brand_code: product.brand_code !== 'null' ? product.brand_code : '',
+      company_code: product.company_code !== 'null' ? product.company_code : '',
+      is_exempt_product: product.is_exempt_product || false,
+      distributor_code: product.distributor_code !== 'null' ? product.distributor_code : '',
+      internal_code: product.internal_code !== 'null' ? product.internal_code : '',
+      barcode: product.barcode !== 'null' ? product.barcode : '',
+      description: product.description !== 'null' ? product.description : '',
+      stock: product.stock, minimum_stock: product.minimum_stock, cost: product.cost,
+      sale_price: product.sale_price, wholesale_price: product.wholesale_price, discount: product.discount,
+      category_id: this.categories().find(c => Number(c.id) === Number(product.category_id)),
+      provider_id: this.providers().find(p => Number(p.id) === Number(product.provider_id)),
+      location_id: this.locations().find(l => Number(l.id) === Number(product.location_id)),
     });
-  }
-
-  handleModalChange(event: boolean): void {
-    this.isModalVisible = event;
-
-    if (!event) {
-      this.preview = '';
-      if (this.fileImage) {
-        this.fileImage.nativeElement.value = '';
-      }
-      this.productForm.reset({
-        is_exempt_product: false
-      });
-      this.productId = 0;
-      this.productIsActive = true;
-      this.fromPurchases = false;
-    }
-  }
-
-  setFormData(product: Product): void {
-    this.productForm.patchValue({
-      brand_code: product.brand_code === 'null' ? null : product.brand_code,
-      company_code: product.company_code === 'null' ? null : product.company_code,
-      is_exempt_product: product.is_exempt_product? product.is_exempt_product : false,
-      distributor_code: product.distributor_code === 'null' ? null : product.distributor_code,
-      internal_code: product.internal_code === 'null' ? null : product.internal_code,
-      barcode: product.barcode === 'null' ? null : product.barcode,
-      description: product.description === 'null' ? null : product.description,
-      stock: product.stock,
-      minimum_stock: product.minimum_stock,
-      cost: product.cost,
-      sale_price: product.sale_price,
-      wholesale_price: product.wholesale_price,
-      discount: product.discount,
-      image: null,
-      // @ts-ignore
-      category_id: this.categories.find(c => c.id === product.category_id),
-      // @ts-ignore
-      provider_id: this.providers.find(p => p.id === product.provider_id),
-      // @ts-ignore
-      location_id: this.locations.find(l => l.id === product.location_id),
-    });
-  }
-
-  buildProduct(): Product {
-    const product: Product = this.productForm.value;
-    product.is_exempt_product = product.is_exempt_product ?? false;
-    product.id = this.productId;
-    product.active = this.productIsActive;
-    product.quantity = 0;
-    product.image = '';
-
-    return product;
   }
 
   onSaveChanges(): void {
-    const product = this.buildProduct();
-    this.sendProduct.emit(product);
-
-    this.isModalVisible = false;
-    this.fromPurchases = false;
-  }
-
-  compareProvider(originalProvider: Provider, selectedProvider: Provider): boolean {
-    if (originalProvider == null || selectedProvider == null) {
-      return false;
+    if (this.productForm.valid) {
+      const formVal = this.productForm.value;
+      this.sendProduct.emit({ ...formVal, id: this.productId(), active: this.productIsActive(), category_id: formVal.category_id?.id, provider_id: formVal.provider_id?.id, location_id: formVal.location_id?.id, image: '', quantity: 0 });
+      this.isModalVisible.set(false);
     }
-
-    return originalProvider.id === selectedProvider.id;
   }
 
-  compareCategory(originalCategory: Category, selectedCategory: Category): boolean {
-    if (originalCategory == null || selectedCategory == null) {
-      return false;
+  showPreview(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      this.productForm.patchValue({ image: file });
+      const reader = new FileReader();
+      reader.onload = () => this.preview.set(reader.result as string);
+      reader.readAsDataURL(file);
     }
-
-    return originalCategory.id === selectedCategory.id;
   }
 
-  compareLocation(originalLocation: Location, selectedLocation: Location): boolean {
-    if (originalLocation == null || selectedLocation == null) {
-      return false;
-    }
-
-    return originalLocation.id === selectedLocation.id;
-  }
-
-  showPreview(event: any): void {
-    // @ts-ignore
-    const file = (event.target as HTMLInputElement).files[0];
-    this.productForm.patchValue({image: file});
-    // @ts-ignore
-    this.productForm.get('image').updateValueAndValidity();
-
-    const reader = new FileReader();
-    reader.onload = () => this.preview = reader.result as string;
-
-    reader.readAsDataURL(file);
-  }
-
+  handleModalChange(event: boolean): void { this.isModalVisible.set(event); if (!event) { this.preview.set(null); this.productForm.reset(); this.productId.set(0); } }
 }

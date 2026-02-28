@@ -1,335 +1,100 @@
-<!--Notifications-->
 <p-toast></p-toast>
-<!--Reports-->
-<c-row ngPreserveWhitespaces>
-  <c-col xs="12">
-    <c-card class="mb-4">
-      <c-card-header>
-        <em class="fa-solid fa-cash-register"></em> <strong>Control de efectivo</strong>
-      </c-card-header>
-      <c-card-body>
-        <c-row class="mb-3" [formGroup]="searchForm">
-          <label [sm]="1" cCol cLabel="col" for="location">Localidad:</label>
-          <c-col [sm]="3">
-            <select sizing="sm" aria-label="Localidad habitual" cSelect formControlName="location" >
-              <option *ngFor="let location of locations" [ngValue]="location.id">{{location.name}}</option>
-            </select>
-          </c-col>
-          
-          <c-col [sm]="2" class="d-grid gap-2">
-            <button cButton class="block" color="dark" pTooltip="Realizar búsqueda" tooltipPosition="left"
-                    (click)="search()" [disabled]="loading">
-              Buscar <em class="fa-solid fa-search"></em>
-            </button>
-          </c-col>
-          
-          
-        </c-row>
-        <c-row class="mb-3" *ngIf="!isCloseTransactionActive">
-          <p-table #dtCurrent
-                   [loading]="loading"
-                   [value]="transactions"
-                   [rowHover]="true"
-                   [paginator]="true"
-                   [rows]="10"
-                   [showCurrentPageReport]="true"
-                   [rowsPerPageOptions]="[10,25,50]"
-                   currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-                   dataKey="id"
-                   responsiveLayout="scroll"
-                   sortField="id"
-                   [sortOrder]="-1"
-                   styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                   [globalFilterFields]="['user_name','location_name','status_balance']"
-          >
-            <ng-template pTemplate="caption">
-              <div class="d-flex justify-content-between">
-                <button cButton color="dark" pTooltip="Permite abrir caja" tooltipPosition="right"
-                        (click)="toggleModal()">
-                  <em class="fa-solid fa-box-open"></em> Abrir caja
-                </button>
-               
-                <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text"
-                           (input)="dtCurrent.filterGlobal($any($event.target).value, 'contains')"
-                           placeholder="Buscar"/>
-                </span>
-              </div>
-            </ng-template>
-           
-            <ng-template pTemplate="header">
-              <tr>
-                <th scope="col" class="text-center">Opciones</th>
-                <th scope="col" class="text-center" pSortableColumn="start_date">Inició
-                  <p-sortIcon field="start_date"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="start_balance">Monto inicial
-                  <p-sortIcon field="start_balance"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="end_date">Finalizó
-                  <p-sortIcon field="end_date"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="end_balance">Monto final
-                  <p-sortIcon field="end_balance"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="user_id">Usuario
-                  <p-sortIcon field="user_name"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="location_id">Localidad
-                  <p-sortIcon field="location_name"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="status_balance">Estado
-                  <p-sortIcon field="status_balance"></p-sortIcon>
-                </th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-transaction>
-              <tr>
-                <td class="text-center">
-                  <span *ngIf="!isTransactionOpen(transaction);else buttons">N/A</span>
-                  <ng-template #buttons>
-                    <button cButton color="warning" size="sm" pTooltip="Cerrar caja" tooltipPosition="bottom"
-                            (click)="closeTransaction(transaction)"><em class="fa-solid fa-box"></em></button>
-                    <button cButton color="danger" size="sm" pTooltip="Desactivar operación" tooltipPosition="right"
-                            (click)="inactiveTransaction(transaction)"><em class="fa-solid fa-trash"></em></button>
-                  </ng-template>
-                </td>
-                <td
-                  class="text-center">{{utilitiesService.formatDate(transaction.start_date, 'DD/MM/YYYY hh:mm:ss A')}}</td>
-                <td class="text-center">{{transaction.start_balance | currency}}</td>
-                <td
-                  class="text-center">{{isTransactionFinished(transaction) ? utilitiesService.formatDate(transaction.end_date, 'DD/MM/YYYY  hh:mm:ss A') : 'N/A'}}</td>
-                <td
-                  class="text-center">{{isTransactionFinished(transaction) ? (transaction.end_balance | currency) : 'N/A'}}</td>
-                <td class="text-center">{{transaction.user_name}}</td>
-                <td class="text-center">{{transaction.location_name}}</td>
-                <td class="text-center">{{transaction.status_balance}}</td>
-              </tr>
-            </ng-template>
-           
-          </p-table>
-        </c-row>
-        <c-row class="mb-3" *ngIf="isCloseTransactionActive">
-          
-          <form cForm [formGroup]="closeTransactionForm">
-            <c-row class="mb-3">
-              <c-col [sm]="2">
-                <button cButton color="dark" (click)="returnTransactionsList()" pTooltip="Regresar al historico de transacciones"
-                        tooltipPosition="right">
-                  <em class="fa-solid fa-arrow-left"></em> Regresar
-                </button>
-              </c-col>
-            </c-row>
-            <c-row class="mb-3 p-4">
-              <c-col [sm]="6" class="py-2">
-                <label cCol cLabel="col" sizing="sm"><b>TOTAL CIERRE: $ {{ this.calculateTotalBalance() }}</b></label>
-              </c-col>
-            </c-row>
-            <c-row class="mb-3 p-4">
-              <c-col [sm]="4" class="text-center">
-                <label cCol cLabel="col" sizing="sm"><b>Denominación:</b></label>
-              </c-col>
-              <c-col [sm]="4" class="text-center">
-                <label cCol cLabel="col" sizing="sm"><b>Cantidad:</b></label>
-              </c-col>
-              <c-col [sm]="4" class="text-center">
-                <label cCol cLabel="col" sizing="sm"><b>Monto:</b></label>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$0.01"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="one_cent_quantity" (blur)="calculateAmount($event, 0.01, 'one_cent')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="one_cent_amount" (blur)="calculateQuantity($event, 0.01, 'one_cent')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$0.05"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="five_cent_quantity" (blur)="calculateAmount($event, 0.05, 'five_cent')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="five_cent_amount" (blur)="calculateQuantity($event, 0.05, 'five_cent')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$0.10"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="ten_cent_quantity" (blur)="calculateAmount($event, 0.1, 'ten_cent')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="ten_cent_amount" (blur)="calculateQuantity($event, 0.1, 'ten_cent')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$0.25"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="twenty_five_cent_quantity" (blur)="calculateAmount($event, 0.25, 'twenty_five_cent')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="twenty_five_cent_amount" (blur)="calculateQuantity($event, 0.25, 'twenty_five_cent')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$1.00"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="one_dollar_quantity" (blur)="calculateAmount($event, 1, 'one_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="one_dollar_amount" (blur)="calculateQuantity($event, 1, 'one_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$2.00"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="two_dollar_quantity" (blur)="calculateAmount($event, 2, 'two_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="two_dollar_amount" (blur)="calculateQuantity($event, 2, 'two_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$5.00"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="five_dollar_quantity" (blur)="calculateAmount($event, 5, 'five_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="five_dollar_amount" (blur)="calculateQuantity($event, 5, 'five_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$10.00"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="ten_dollar_quantity" (blur)="calculateAmount($event, 10, 'ten_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="ten_dollar_amount" (blur)="calculateQuantity($event, 10, 'ten_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$20.00"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="twenty_dollar_quantity" (blur)="calculateAmount($event, 20, 'twenty_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="twenty_dollar_amount" (blur)="calculateQuantity($event, 20, 'twenty_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$50.00"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="fifty_dollar_quantity" (blur)="calculateAmount($event, 50, 'fifty_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="fifty_dollar_amount" (blur)="calculateQuantity($event, 50, 'fifty_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="$100.00"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="one_hundred_dollar_quantity" (blur)="calculateAmount($event, 100, 'one_hundred_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="one_hundred_dollar_amount" (blur)="calculateQuantity($event, 100, 'one_hundred_dollar')"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="Cheque"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="cheque_quantity"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="cheque_amount"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="Transferencia bancaria"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="transfer_bank_quantity"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="transfer_bank_amount"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="Tarjeta de credito/debito"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="pos_quantity"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="pos_amount"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="text" readonly value="Link de pago"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="1" formControlName="link_pay_quantity"/>
-              </c-col>
-              <c-col [sm]="4" class="py-2">
-                <input cFormControl type="number" step="0.01" formControlName="link_pay_amount"/>
-              </c-col>
-              <c-col [sm]="6" class="py-2">
-                <label cCol cLabel="col" sizing="sm" for="comment">Comentarios:</label>
-                <textarea cFormControl sizing="sm" id="comment" type="text"
-                          placeholder="Ingrese los comentarios"
-                          formControlName="comment" rows="3"
-                          pTooltip="Comentarios sobre cierre de caja" tooltipPosition="bottom"
-                          style="resize: none;"></textarea>
-                <c-form-feedback [valid]="false">Los comentarios son obligatorios</c-form-feedback>
-              </c-col>
-              
-              <c-col class="d-grid gap-2 d-md-flex justify-content-md-end py-2" *ngIf="isValidToClose()">
-                <button cButton color="primary" (click)="completeTransaction()" pTooltip="Cerrar caja actual"
-                        tooltipPosition="left" id="btn-complete-transaction">
-                  <em class="fa-solid fa-box"></em> Cerrar caja
-                </button>
-              </c-col>
-            </c-row>
+
+<div class="p-4 bg-gray-50 min-h-screen">
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
+    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+      <div class="flex align-items-center gap-3">
+        <i class="fa-solid fa-cash-register text-2xl"></i>
+        <span class="text-xl font-bold uppercase tracking-wider">Cierres de Caja</span>
+      </div>
+      @if (!isCloseTransactionActive()) {
+        <p-button label="Abrir Caja" icon="pi pi-lock-open" severity="success" (onClick)="isModalVisible.set(true)"></p-button>
+      }
+    </div>
+
+    <div class="p-card-body p-4">
+      @if (!isCloseTransactionActive()) {
+        <div class="p-3 bg-gray-50 border-round-xl border-1 border-gray-200 mb-4 shadow-1">
+          <form [formGroup]="searchForm" (ngSubmit)="search()" class="flex align-items-center gap-3">
+            <span class="font-bold text-sm">Filtrar:</span>
+            <p-select [options]="locations()" optionLabel="name" formControlName="location" placeholder="Todas las sucursales" class="w-20rem"></p-select>
+            <p-button icon="pi pi-search" label="Buscar" severity="primary" type="submit"></p-button>
           </form>
-        </c-row>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
-<!--Modal to start transaction-->
-<c-modal alignment="center" [visible]="isModalVisible" (visibleChange)="handleModalChange($event)">
-  <c-modal-header>
-    <h5 cModalTitle>Abrir caja</h5>
-    <button cButtonClose (click)="toggleModal()"></button>
-  </c-modal-header>
-  <c-modal-body [formGroup]="initialTransactionForm">
-    <c-row class="mb-3">
-      <label [sm]="3" cCol sizing="sm" cLabel="col">Localidad*:</label>
-      <c-col [sm]="9">
-        <select sizing="sm" aria-label="Localidad habitual" cSelect formControlName="location" (change)="isFirstTimeToOpen()">
-          <option *ngFor="let location of locations" [ngValue]="location">{{location.name}}</option>
-        </select>
-        <c-form-feedback [valid]="false">La localidad es obligatoria</c-form-feedback>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3" *ngIf="isFirstTime">
-      <label [sm]="3" cCol sizing="sm" cLabel="col">Monto inicial*:</label>
-      <c-col [sm]="9">
-        <input cFormControl type="number" step="0.01" min="0" placeholder="Monto inicial de caja" formControlName="start_balance"/>
-        <c-form-feedback [valid]="false">El monto inicial es obligatorio</c-form-feedback>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="3" cCol cLabel="col" for="password">Password:</label>
-      <c-col [sm]="9">
-        <input cFormControl id="password" type="password" placeholder="Password" formControlName="password"/>
-        <c-form-feedback [valid]="false">El password es obligatorio</c-form-feedback>
-      </c-col>
-    </c-row>
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" (click)="toggleModal()"><em class="fa-solid fa-xmark"></em> Cerrar</button>
-    <button cButton color="primary" type="submit" [disabled]="initialTransactionForm.invalid"
-            (click)="openTransaction()"><em
-      class="fa-solid fa-box-open"></em> Abrir
-    </button>
-  </c-modal-footer>
-</c-modal>
+        </div>
+
+        <p-table #dt [loading]="loading()" [value]="transactions()" [rowHover]="true" [paginator]="true" [rows]="15" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
+          <ng-template pTemplate="header">
+            <tr>
+              <th class="text-center">Opciones</th>
+              <th pSortableColumn="start_date">Apertura <p-sortIcon field="start_date"></p-sortIcon></th>
+              <th class="text-right">Saldo Inicial</th>
+              <th pSortableColumn="end_date">Cierre <p-sortIcon field="end_date"></p-sortIcon></th>
+              <th class="text-right">Saldo Final</th>
+              <th>Usuario</th>
+              <th class="text-center">Estado</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-transaction>
+            <tr>
+              <td class="text-center">
+                @if (transaction.status_balance?.toLowerCase().includes('inicio')) {
+                  <p-button icon="pi pi-lock" severity="warn" size="small" [rounded]="true" (onClick)="closeTransaction(transaction)"></p-button>
+                }
+              </td>
+              <td>{{ utilitiesService.formatDate(transaction.start_date, 'DD/MM/YYYY HH:mm') }}</td>
+              <td class="text-right text-green-600 font-bold">{{ transaction.start_balance | currency }}</td>
+              <td>{{ transaction.end_date ? utilitiesService.formatDate(transaction.end_date, 'DD/MM/YYYY HH:mm') : '---' }}</td>
+              <td class="text-right font-bold">{{ transaction.end_balance | currency }}</td>
+              <td>{{ transaction.user_name }}</td>
+              <td class="text-center">
+                <p-tag [value]="transaction.status_balance" [severity]="transaction.status_balance?.toLowerCase().includes('inicio') ? 'success' : 'warn'" [rounded]="true"></p-tag>
+              </td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="7" class="text-center p-5 text-gray-400">No se encontraron cierres de caja registrados.</td></tr>
+          </ng-template>
+        </p-table>
+      }
+
+      @if (isCloseTransactionActive()) {
+        <div class="p-fluid">
+          <p-button icon="pi pi-arrow-left" label="Regresar" severity="secondary" (onClick)="isCloseTransactionActive.set(false)" class="w-auto mb-4"></p-button>
+          <form [formGroup]="closeTransactionForm" (ngSubmit)="completeTransaction()" class="grid">
+            <div class="col-12 lg:col-8">
+              <p-card header="Efectivo" styleClass="shadow-1">
+                <div class="grid">
+                  @for (denom of [{p:'one_cent', l:'$0.01', v:0.01}, {p:'one_dollar', l:'$1.00', v:1.0}]; track denom.p) {
+                    <div class="col-12 md:col-6 flex gap-2 align-items-end mb-3">
+                      <div class="flex-grow-1"><label class="font-bold text-xs">{{ denom.l }} (Cant.)</label><p-inputNumber [formControlName]="denom.p + '_quantity'" (onInput)="updateAmount(denom.p, denom.v, true)"></p-inputNumber></div>
+                      <div class="flex-grow-1"><label class="font-bold text-xs">Monto</label><p-inputNumber [formControlName]="denom.p + '_amount'" mode="currency" currency="USD" (onInput)="updateAmount(denom.p, denom.v, false)"></p-inputNumber></div>
+                    </div>
+                  }
+                </div>
+              </p-card>
+            </div>
+            <div class="col-12 lg:col-4">
+              <p-card header="Resumen" styleClass="shadow-1 h-full">
+                <div class="p-3 bg-primary border-round text-white mb-4"><span>Total Arqueo:</span><span class="text-2xl font-bold ml-2">{{ calculateTotalBalance() | currency }}</span></div>
+                <div class="field"><label class="font-bold text-sm block mb-2">Comentarios*</label><textarea pInputTextarea formControlName="comment" rows="4"></textarea></div>
+                <p-button label="Cerrar Caja" icon="pi pi-check-circle" size="large" [disabled]="!closeTransactionForm.valid" type="submit"></p-button>
+              </p-card>
+            </div>
+          </form>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<p-dialog header="Apertura de Caja" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '450px'}">
+  <form [formGroup]="initialTransactionForm" (ngSubmit)="openTransaction()" class="p-fluid mt-3">
+    <div class="field mb-4"><label class="font-bold block">Sucursal*</label><p-select [options]="locations()" optionLabel="name" formControlName="location" (onChange)="checkFirstTime()"></p-select></div>
+    @if (isFirstTime()) { <div class="field mb-4"><label class="font-bold block text-primary">Saldo Inicial*</label><p-inputNumber formControlName="start_balance" mode="currency" currency="USD"></p-inputNumber></div> }
+    <div class="field mb-4"><label class="font-bold block">Contraseña*</label><p-password formControlName="password" [feedback]="false" [toggleMask]="true"></p-password></div>
+    <div class="flex justify-content-end gap-2 pt-3 border-top-1 border-gray-100 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="isModalVisible.set(false)"></p-button>
+      <p-button label="Abrir" icon="pi pi-check" severity="success" type="submit" [disabled]="initialTransactionForm.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>

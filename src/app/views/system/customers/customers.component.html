@@ -1,84 +1,118 @@
-<!--Notifications-->
 <p-toast></p-toast>
-<!--Table-->
-<c-row ngPreserveWhitespaces>
-  <c-col xs="12">
-    <c-card class="mb-4">
-      <c-card-header>
-        <em class="fa-solid fa-users"></em> <strong>Clientes</strong>
-      </c-card-header>
-      <c-card-body>
-        <p-table #dt
-                 [loading]="loading"
-                 [value]="customers"
-                 [rowHover]="true"
-                 [paginator]="true"
-                 [rows]="10"
-                 [showCurrentPageReport]="true"
-                 [rowsPerPageOptions]="[10,25,50]"
-                 currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-                 dataKey="id"
-                 responsiveLayout="scroll"
-                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                 [globalFilterFields]="['name','address','mobile','status']"
-        >
-          <ng-template pTemplate="caption">
-            <div class="d-flex justify-content-between">
-              <button cButton color="dark" (click)="customerModal.toggleModal()" pTooltip="Agregar cliente"
-                      tooltipPosition="right">
-                <em class="fa-solid fa-circle-plus pe-2"></em>Agregar
-              </button>
-              <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
-                           placeholder="Buscar"/>
-                </span>
+
+<div class="p-4 bg-gray-50 min-h-screen">
+  
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
+    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+      <div class="flex align-items-center gap-3">
+        <i class="fa-solid fa-users text-2xl"></i>
+        <span class="text-xl font-bold uppercase tracking-wider">Gestión de Clientes</span>
+      </div>
+      <p-button label="Nuevo Cliente" icon="pi pi-user-plus" severity="success" (onClick)="customerModal()?.toggleModal()" pTooltip="Registrar un nuevo cliente" class="hidden md:block"></p-button>
+    </div>
+
+    <div class="p-card-body p-4">
+      
+      <p-table #dt 
+               [loading]="loading()" 
+               [value]="allCustomers()" 
+               [rowHover]="true" 
+               [paginator]="true" 
+               [rows]="25" 
+               [showCurrentPageReport]="true"
+               [rowsPerPageOptions]="[10,25,50,100]"
+               currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} clientes"
+               dataKey="id" 
+               responsiveLayout="stack" 
+               breakpoint="960px"
+               styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped shadow-1 border-round overflow-hidden"
+               [globalFilterFields]="['name','businessName','nit','dui','email','municipality']">
+        
+        <ng-template pTemplate="caption">
+          <div class="flex flex-column md:flex-row justify-content-between align-items-center gap-3">
+            <div class="flex gap-2 w-full md:w-auto">
+              <p-button icon="pi pi-user-plus" severity="success" (onClick)="customerModal()?.toggleModal()" pTooltip="Nuevo Cliente" class="md:hidden"></p-button>
+              <span class="p-input-icon-left w-full">
+                <i class="pi pi-search"></i>
+                <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar por nombre, NIT, DUI, negocio..." class="w-full md:w-30rem" />
+              </span>
             </div>
-          </ng-template>
-          <ng-template pTemplate="header">
-            <tr>
-              <th scope="col" class="text-center">Opciones</th>
-              <th scope="col" class="text-center" pSortableColumn="name">Nombre
-                <p-sortIcon field="name"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="address">Direccion
-                <p-sortIcon field="address"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="mobile">Celular
-                <p-sortIcon field="mobile"></p-sortIcon>
-              </th>
-              <th scope="col" class="text-center" pSortableColumn="status">Estado
-                <p-sortIcon field="status"></p-sortIcon>
-              </th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-customer>
-            <tr>
-              <td class="text-center">
-                <button cButton color="warning" size="sm" pTooltip="Editar cliente" tooltipPosition="top"
-                        (click)="customerModal.toggleModal(customer)"><em class="fa-solid fa-pen"></em></button>
-                <button cButton color="danger" size="sm" pTooltip="Desactivar cliente" tooltipPosition="top"
-                        *ngIf="customer.status" (click)="changeStatus(customer, false)">
-                  <em class="fa-solid fa-trash"></em></button>
-                <button cButton color="info" size="sm" pTooltip="Activar cliente" tooltipPosition="top"
-                        *ngIf="!customer.status" (click)="changeStatus(customer, true)">
-                  <em class="fa-solid fa-trash-arrow-up"></em></button>
-              </td>
-              <td>{{customer.name}}</td>
-              <td>{{customer.address}}</td>
-              <td>{{customer.mobile}}</td>
-              <td class="text-center">
-                <c-badge
-                  [color]="utilitiesService.getFromStatus(customer.status)">{{utilitiesService.getFromStatus(customer.status, statusTypeData.NAME)}}</c-badge>
-              </td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
-<!--Modal-->
-<app-customer-modal
-  (sendCustomer)="saveChanges($event)"
-></app-customer-modal>
+            
+            <div class="flex gap-2">
+              <p-button icon="pi pi-file-excel" severity="success" [outlined]="true" pTooltip="Exportar a Excel"></p-button>
+              <p-button icon="pi pi-filter-slash" [outlined]="true" (onClick)="dt.clear()" pTooltip="Limpiar filtros"></p-button>
+            </div>
+          </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th class="text-center font-bold" style="width: 8rem">Opciones</th>
+            <th pSortableColumn="name" style="min-width: 15rem">Nombre <p-sortIcon field="name"></p-sortIcon></th>
+            <th pSortableColumn="businessName" style="min-width: 12rem">Negocio <p-sortIcon field="businessName"></p-sortIcon></th>
+            <th pSortableColumn="municipality">Municipio <p-sortIcon field="municipality"></p-sortIcon></th>
+            <th pSortableColumn="email" style="min-width: 12rem">Email <p-sortIcon field="email"></p-sortIcon></th>
+            <th pSortableColumn="mobile">Móvil <p-sortIcon field="mobile"></p-sortIcon></th>
+            <th pSortableColumn="status" class="text-center" style="width: 8rem">Estado <p-sortIcon field="status"></p-sortIcon></th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-customer>
+          <tr>
+            <td class="text-center">
+              <div class="flex justify-content-center gap-2">
+                <p-button icon="pi pi-user-edit" severity="warn" size="small" [rounded]="true" pTooltip="Editar" (onClick)="customerModal()?.toggleModal(customer)"></p-button>
+                @if (customer.status) {
+                  <p-button icon="pi pi-user-minus" severity="danger" size="small" [rounded]="true" pTooltip="Inactivar" (onClick)="changeStatus(customer, false)"></p-button>
+                } @else {
+                  <p-button icon="pi pi-user-plus" severity="info" size="small" [rounded]="true" pTooltip="Activar" (onClick)="changeStatus(customer, true)"></p-button>
+                }
+              </div>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Nombre:</span>
+              <div class="flex flex-column">
+                <span class="font-bold text-gray-800 line-height-3 uppercase text-sm">{{customer.name}}</span>
+                <span class="text-xs text-gray-500 italic"><i class="pi pi-id-card text-xs mr-1"></i>{{customer.nit || customer.dui || 'Sin NIT/DUI'}}</span>
+              </div>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Negocio:</span>
+              <span class="text-sm font-semibold text-gray-700">{{customer.businessName || '---'}}</span>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Municipio:</span>
+              <span class="text-xs"><i class="pi pi-map-marker text-xs mr-1"></i>{{customer.municipality}}</span>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Email:</span>
+              <span class="text-xs underline text-blue-600">{{customer.email || '---'}}</span>
+            </td>
+            <td>
+              <span class="p-column-title font-bold">Móvil:</span>
+              <span class="text-sm font-bold">{{customer.mobile || '---'}}</span>
+            </td>
+            <td class="text-center">
+              <span class="p-column-title font-bold">Estado:</span>
+              <p-tag [value]="customer.status ? 'Activo' : 'Inactivo'" 
+                     [severity]="customer.status ? 'success' : 'warn'"
+                     [rounded]="true"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="text-center p-6 text-gray-400">
+              <i class="pi pi-users text-5xl mb-3 block"></i>
+              <span class="text-lg italic">No se encontraron clientes registrados en el sistema.</span>
+            </td>
+          </tr>
+        </ng-template>
+
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<app-customer-modal (sendCustomer)="saveChanges($event)"></app-customer-modal>

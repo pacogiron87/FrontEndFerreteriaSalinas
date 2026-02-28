@@ -59,7 +59,7 @@ export class InvoiceComponent implements OnInit {
 
       // @ts-ignore
       html2canvas(DATA, options)
-        .then(canvas => {
+        .then((canvas: any) => {
           const img = canvas.toDataURL('image/png');
           const bufferX = 15;
           const bufferY = 15;
@@ -69,7 +69,7 @@ export class InvoiceComponent implements OnInit {
           doc.addImage(img, 'PNG', bufferX, bufferY, pdfWidth, pdfHeight, undefined, 'FAST');
           return doc;
         })
-        .then(result => {
+        .then((result: any) => {
           window.open(URL.createObjectURL(result.output('blob')));
           // @ts-ignore
           this.sale = [];

@@ -1,125 +1,21 @@
-<c-modal size="xl" [visible]="isModalVisible" (visibleChange)="handleModalChange($event)">
-  <c-modal-header>
-    <h5 cModalTitle>{{modalTitle}}</h5>
-    <button cButtonClose (click)="toggleModal()"></button>
-  </c-modal-header>
-  <c-modal-body [formGroup]="customerForm">
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="name">Nombre*:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="name" type="text" placeholder="Nombre completo del cliente"
-               formControlName="name"/>
-        <c-form-feedback [valid]="false">El nombre es obligatorio</c-form-feedback>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col">Actividad Económica:</label>
-      <c-col [sm]="4">
-        <p-autoComplete #autoComplete
-              formControlName="codeActivitie"
-              [style]="{'width': '100%'}"
-              [inputStyle]="{'width': '100%'}"
-              [showEmptyMessage]="true" 
-              [suggestions]="filteredCodeActivitie"
-              (completeMethod)="filterCodeActivitie($event)" 
-              field="displayField" 
-              [minLength]="2"
-              [forceSelection]="true"
-              (onSelect)="onSelectChange($event)"
-              (onClear)="onClearCodeActivitie()"
-              id="codeActivitie" 
-              class="p-fluid"
-              pTooltip="Digite la actividad a buscar" 
-              tooltipPosition="bottom"
-              emptyMessage="No se encontraron actividades con los términos de búsqueda"
-              placeholder="Ingrese el nombre de la actividad para realizar la búsqueda">
-        </p-autoComplete>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="address">Dirección*:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="address" type="text" placeholder="Dirección del cliente"
-               formControlName="address"/>
-        <c-form-feedback [valid]="false">La dirección es obligatoria</c-form-feedback>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="dui">DUI:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="dui" type="text" placeholder="DUI del cliente"
-               formControlName="dui"/>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="nit">NIT:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="nit" type="text" placeholder="NIT del cliente"
-               formControlName="nit"/>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="nrc">NRC:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="nrc" type="text" placeholder="NRC del cliente"
-               formControlName="nrc"/>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="businessName">Giro:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="businessName" type="text" placeholder="Giro del cliente"
-               formControlName="businessName"/>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="alias">Alias:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="alias" type="text" placeholder="Alias del cliente"
-               formControlName="alias"/>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="phoneHome">Tel&eacute;fono:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="phoneHome" type="text" placeholder="Tel&eacute;fono del cliente"
-               formControlName="phoneHome"/>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="mobile">Celular:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="mobile" type="text" placeholder="Celular del cliente"
-               formControlName="mobile"/>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" for="email">Email:</label>
-      <c-col [sm]="4">
-        <input cFormControl sizing="sm" id="email" type="text" placeholder="Email del cliente"
-               formControlName="email"/>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col">Departamento*:</label>
-      <c-col [sm]="4">
-        <select sizing="sm" aria-label="Departamento" cSelect formControlName="departmentAddress" (change)="getCities()"
-                [compareWith]="compareState">
-          <option *ngFor="let municipality of states" [ngValue]="municipality.state">{{municipality.state}}</option>
-        </select>
-        <c-form-feedback [valid]="false">El departamento es obligatorio</c-form-feedback>
-      </c-col>
-    </c-row>
-    <c-row class="mb-3">
-      <label [sm]="2" cCol sizing="sm" cLabel="col" *ngIf="cities.length > 0">Municipio*:</label>
-      <c-col [sm]="4" *ngIf="cities.length > 0">
-        <select sizing="sm" aria-label="Municipio" cSelect formControlName="municipality" [compareWith]="compareCity">
-          <option *ngFor="let municipality of cities" [ngValue]="municipality.city">{{municipality.city}}</option>
-        </select>
-        <c-form-feedback [valid]="false">El municipio es obligatorio</c-form-feedback>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" [ngStyle]="{'padding-top': cities.length > 0 ? '1.2rem' : '0.4rem'}">IVA Retenido*:</label>
-      <c-col [sm]="4" [ngStyle]="{'padding-top': cities.length > 0 ? '1rem' : '0.3rem'}">
-        <p-inputSwitch formControlName="isRetentionTax"></p-inputSwitch>
-      </c-col>
-      <label [sm]="2" cCol sizing="sm" cLabel="col" [ngStyle]="{'padding-top': cities.length > 0 ? '1.2rem' : '0.4rem'}">Es gran contribuyente*:</label>
-      <c-col [sm]="4" [ngStyle]="{'padding-top': cities.length > 0 ? '1rem' : '0.3rem'}">
-        <p-inputSwitch formControlName="IsMajorTaxpayer"></p-inputSwitch>
-      </c-col>
-    </c-row>
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" (click)="toggleModal()"><em class="fa-solid fa-xmark"></em> Cerrar</button>
-    <button cButton color="primary" type="submit" [disabled]="customerForm.invalid" (click)="onSaveChanges()"><em
-      class="fa-solid fa-floppy-disk"></em> Guardar
-    </button>
-  </c-modal-footer>
-</c-modal>
+<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '60vw'}" [breakpoints]="{'960px': '90vw'}">
+  <form [formGroup]="customerForm" (ngSubmit)="onSaveChanges()" class="p-fluid">
+    <div class="grid pt-3">
+      <div class="col-12 md:col-6 field"><label class="font-bold">Nombre completo*</label><input pInputText formControlName="name" /></div>
+      <div class="col-12 md:col-6 field"><label class="font-bold">Negocio / Alias</label><input pInputText formControlName="businessName" /></div>
+      <div class="col-12 md:col-4 field"><label class="font-bold">Departamento*</label><p-select [options]="states()" formControlName="departmentAddress" optionLabel="state" optionValue="state"></p-select></div>
+      <div class="col-12 md:col-4 field"><label class="font-bold">Municipio*</label><p-select [options]="cities()" formControlName="municipality" optionLabel="city" optionValue="city"></p-select></div>
+      <div class="col-12 md:col-4 field"><label class="font-bold">Dirección*</label><input pInputText formControlName="address" /></div>
+      <div class="col-12 md:col-8 field"><label class="font-bold">Giro / Actividad</label>
+        <p-autoComplete formControlName="codeActivitie" [suggestions]="filteredCodeActivities()" (completeMethod)="filterCodeActivity($event)" field="displayField" (onSelect)="onSelectActivity($event)"></p-autoComplete></div>
+      <div class="col-12 md:col-4 field flex align-items-center justify-content-between pt-4">
+        <div class="flex flex-column gap-2"><label class="font-bold text-sm">Retención (1%)</label><p-toggleswitch formControlName="isRetentionTax"></p-toggleswitch></div>
+        <div class="flex flex-column gap-2"><label class="font-bold text-sm">Gran Contribuyente</label><p-toggleswitch formControlName="IsMajorTaxpayer"></p-toggleswitch></div>
+      </div>
+    </div>
+    <div class="flex justify-content-end gap-2 pt-4 border-top-1 border-gray-200 mt-4">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="isModalVisible.set(false)"></p-button>
+      <p-button label="Guardar" severity="primary" type="submit" [disabled]="customerForm.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>

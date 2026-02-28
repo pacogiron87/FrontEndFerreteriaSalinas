@@ -1,11 +1,14 @@
 export interface User {
   id: string;
   userName?: string;
+  username?: string; // Add alias for consistency
   name?: string;
   password?: string;
+  email?: string;
   image?: string;
   active: boolean;
-  roles?: string; // Añadimos roles al usuario
+  roles?: string;
+  role?: string; // Add alias for consistency
 }
 
 export enum RoleType {

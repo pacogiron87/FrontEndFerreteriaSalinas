@@ -1,98 +1,112 @@
-import {Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {Subscription} from "rxjs";
+import { Component, OnInit, signal, computed, inject, output, model } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
-import {SaleService} from "src/app/views/income/services/sale.service";
-import {UtilitiesService} from "src/app/core/helpers/utilities.service";
+// PrimeNG Modules
+import { DialogModule } from 'primeng/dialog';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { TooltipModule } from 'primeng/tooltip';
+import { RippleModule } from 'primeng/ripple';
+import { BadgeModule } from 'primeng/badge';
 
-import {Customer} from "src/app/views/system/models/customer.model";
-import {Sale} from "src/app/views/income/models/sale.model";
+// Services
+import { SaleService } from "src/app/views/income/services/sale.service";
+import { UtilitiesService } from "src/app/core/helpers/utilities.service";
 
+// Models
+import { Customer } from "src/app/views/system/models/customer.model";
+import { Sale } from "src/app/views/income/models/sale.model";
 
 @Component({
   selector: 'app-search-sale-customer-modal',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    DialogModule,
+    TableModule,
+    ButtonModule,
+    InputTextModule,
+    TooltipModule,
+    RippleModule,
+    BadgeModule
+  ],
   templateUrl: './search-sale-customer-modal.component.html',
   styleUrls: ['./search-sale-customer-modal.component.scss']
 })
-export class SearchSaleCustomerModalComponent implements OnInit, OnDestroy {
-  @Output() sendSale = new EventEmitter<Sale>();
-  // @ts-ignore
-  saleForm: FormGroup;
-  isVisible = false;
-  customerId = 0;
-  subscriptions: Subscription[] = [];
-  loading = false;
-  sales: Sale[] = [];
-  filteredSales: Sale[] = [];
+export class SearchSaleCustomerModalComponent implements OnInit {
+  // Services
+  private readonly fb = inject(FormBuilder);
+  private readonly saleService = inject(SaleService);
+  public readonly utilitiesService = inject(UtilitiesService);
 
-  constructor(
-    private fb: FormBuilder,
-    private service: SaleService,
-    public utilitiesService: UtilitiesService,
-  ) { }
+  // Outputs
+  sendSale = output<Sale>();
+
+  // Signals for state
+  isVisible = model(false);
+  customerId = signal(0);
+  searchTerm = signal('');
+
+  // Data from store
+  loading = toSignal(this.saleService.selectIsLoading(), { initialValue: false });
+  allSales = toSignal(this.saleService.selectSalesByCustomer(), { initialValue: [] });
+
+  // Computed for filtering
+  filteredSales = computed(() => {
+    const term = this.searchTerm().trim().toLowerCase();
+    const sales = this.allSales();
+    
+    if (!term) return sales;
+
+    return sales.filter(sale => 
+      sale.saleDetails.some(detail => 
+        detail.description_item.toLowerCase().includes(term)
+      ) || 
+      sale.invoice_number.toString().includes(term)
+    );
+  });
+
+  // Form
+  saleForm!: FormGroup;
+
+  constructor() {
+    this.initForm();
+  }
 
   ngOnInit(): void {
+    // Initial setup if needed
+  }
+
+  private initForm(): void {
     this.saleForm = this.fb.group({
       product: [''],
     });
 
-    this.subscriptions[0] = this.service.selectIsLoading().subscribe(isLoading => this.loading = isLoading);
-    this.subscriptions[1] = this.service.selectSalesByCustomer().subscribe(sales => this.getSales(sales));
+    // Link form field to signal for reactive filtering
+    this.saleForm.get('product')?.valueChanges.subscribe(val => {
+      this.searchTerm.set(val || '');
+    });
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
-  }
-
-  toggleModal(customer: Customer | undefined = undefined): void {
-    this.isVisible = !this.isVisible;
-
+  toggleModal(customer?: Customer): void {
     if (customer) {
-      this.customerId = customer.id;
-      this.service.searchSalesByCustomer(this.customerId);
+      this.customerId.set(customer.id);
+      this.saleService.searchSalesByCustomer(this.customerId());
+      this.isVisible.set(true);
     } else {
-      this.customerId = 0;
-    }
-  }
-
-  handleModalChange(event: boolean): void {
-    this.isVisible = event;
-
-    if (!event) {
-      this.saleForm.reset();
-      this.customerId = 0;
-    }
-  }
-
-  getSales(sales: Sale[]): void {
-    [...this.sales] = sales;
-    [...this.filteredSales] = sales;
-  }
-
-  filterSale(event: any): void {
-    const product = event.target.value;
-    [...this.filteredSales] = [];
-
-    if (product.trim().length > 0) {
-      this.sales.forEach(sale => {
-        sale.saleDetails.every(element => {
-          if (element.description_item.toLowerCase().includes(product.toLowerCase())) {
-            this.filteredSales.push(sale);
-            return false;
-          } else {
-            return true;
-          }
-        })
-      });
-    } else {
-      [...this.filteredSales] = this.sales;
+      this.customerId.set(0);
+      this.isVisible.set(false);
     }
   }
 
   selectSale(sale: Sale): void {
     this.sendSale.emit(sale);
     this.saleForm.reset();
-    this.isVisible = false;
+    this.isVisible.set(false);
   }
-
 }

@@ -1,189 +1,78 @@
-<!--Notifications-->
 <p-toast></p-toast>
-<!--Reports-->
-<c-row ngPreserveWhitespaces>
-  <c-col xs="12">
-    <c-card class="mb-4">
-      <c-card-header>
-        <em class="fa-solid fa-cart-flatbed"></em> <strong>Reporte de compras</strong>
-      </c-card-header>
-      <c-card-body>
-        <c-row class="mb-3" [formGroup]="searchForm">
-          <label [sm]="1" cCol cLabel="col" for="customer">Cliente:</label>
-          <c-col [sm]="3">
-            <input cFormControl id="customer" type="text" placeholder="Nombre del cliente"
-                   formControlName="customerName"/>
-          </c-col>
-          <label [sm]="1" cCol cLabel="col" for="startDate">Fecha inicial:</label>
-          <c-col [sm]="2">
-            <p-calendar inputId="startDate" [readonlyInput]="true" [maxDate]="maxDate" dateFormat="dd/mm/yy"
-                        placeholder="Fecha inicial" formControlName="startDate" id="startDate"></p-calendar>
-          </c-col>
-          <label [sm]="1" cCol cLabel="col" for="endDate">Fecha final:</label>
-          <c-col [sm]="2">
-            <p-calendar inputId="endDate" [readonlyInput]="true" [maxDate]="maxDate" dateFormat="dd/mm/yy"
-                        placeholder="Fecha final" formControlName="endDate" id="endDate"></p-calendar>
-          </c-col>
-          <c-col [sm]="2" class="d-grid gap-2">
-            <button cButton class="block" color="dark" pTooltip="Realizar búsqueda" tooltipPosition="left"
-                    (click)="search()" [disabled]="loading">
-              Buscar <em class="fa-solid fa-search"></em>
-            </button>
-          </c-col>
-          <label [sm]="1" cCol cLabel="col" for="category" id="category-label">Categorias:</label>
-          <c-col [sm]="3">
-            <p-multiSelect [options]="categories" formControlName="categoriesId" optionLabel="name" optionValue="id"
-                           optionDisabled="!active" [virtualScroll]="true" display="chip" id="category"
-                           defaultLabel="Seleccione la(s) categoría(s)"></p-multiSelect>
-          </c-col>
-          <label [sm]="1" cCol cLabel="col" for="location" id="location-label">Localidad:</label>
-          <c-col [sm]="3">
-            <select sizing="sm" aria-label="Localidad habitual" cSelect formControlName="location" id="location">
-              <option *ngFor="let location of locations" [ngValue]="location.id">{{location.name}}</option>
-            </select>
-          </c-col>
-        </c-row>
-        <c-row class="mb-3">
-          <p-table #dtCurrent
-                   [loading]="loading"
-                   [value]="purchases"
-                   [rowHover]="true"
-                   [paginator]="true"
-                   [rows]="10"
-                   [showCurrentPageReport]="true"
-                   [rowsPerPageOptions]="[10,25,50]"
-                   currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-                   dataKey="id"
-                   responsiveLayout="scroll"
-                   sortField="id"
-                   [sortOrder]="-1"
-                   styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                   [globalFilterFields]="['name','description','active']"
-          >
-            <ng-template pTemplate="caption">
-              <div class="d-flex justify-content-between">
-                  <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text"
-                           (input)="dtCurrent.filterGlobal($any($event.target).value, 'contains')"
-                           placeholder="Buscar"/>
-                </span>
-              </div>
-            </ng-template>
-            <ng-template pTemplate="header">
-              <tr>
-                <th scope="col" class="text-center">Detalles</th>
-                <th scope="col" class="text-center" pSortableColumn="created_at">Fecha
-                  <p-sortIcon field="created_at"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="invoice_total">Importe
-                  <p-sortIcon field="total"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="invoice_number">Factura
-                  <p-sortIcon field="invoice_number"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="customer_name">Nombre comercial
-                  <p-sortIcon field="tradename"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="customer_name">Nombre de negocio
-                  <p-sortIcon field="tradename"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="advance_payment">Tipo de documento
-                  <p-sortIcon field="invoice_format"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="comment">Observacion
-                  <p-sortIcon field="comment"></p-sortIcon>
-                </th>
-                <th scope="col" class="text-center" pSortableColumn="invoice_status">Estado
-                  <p-sortIcon field="active"></p-sortIcon>
-                </th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-purchase>
-              <tr>
-                <td class="text-center">
-                  <button cButton color="primary" size="sm" pTooltip="Ver detalles" tooltipPosition="right"
-                          (click)="seeDetails(purchase)"><em class="fa-solid fa-eye"></em></button>
-                </td>
-                <td class="text-center">{{utilitiesService.formatDate(purchase.created_at, 'DD/MM/YYYY')}}</td>
-                <td class="text-center">{{purchase.total | currency}}</td>
-                <td class="text-center">{{purchase.invoice_number}}</td>
-                <td class="text-center">{{purchase.tradename}}</td>
-                <td class="text-center">{{purchase.tradename}}</td>
-                <td class="text-center">{{purchase.invoice_format}}</td>
-                <td class="text-center">{{purchase.comment}}</td>
-                <td class="text-center">
-                  <c-badge
-                    [color]="utilitiesService.getFromStatus(purchase.active)">{{utilitiesService.getFromStatus(purchase.active, statusTypeData.NAME)}}</c-badge>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="summary">
-              {{ this.getTotalWithMessage() }}
-            </ng-template>
-          </p-table>
-        </c-row>
-      </c-card-body>
-    </c-card>
-  </c-col>
-</c-row>
-<!--Modal-->
-<c-modal size="xl" [visible]="isModalVisible" (visibleChange)="handleModalChange($event)">
-  <c-modal-header>
-    <h5 cModalTitle>{{modalTitle}}</h5>
-    <button cButtonClose (click)="closeDetails()"></button>
-  </c-modal-header>
-  <c-modal-body>
-    <p-table #dtDetails
-             [value]="details"
-             [rowHover]="true"
-             [paginator]="true"
-             [rows]="5"
-             [showCurrentPageReport]="true"
-             [rowsPerPageOptions]="[5,10]"
-             currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-             dataKey="id"
-             responsiveLayout="scroll"
-             styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-             [globalFilterFields]="['description']"
-    >
-      <ng-template pTemplate="caption">
-        <div class="d-flex justify-content-between">
-          <span class="p-input-icon-left ml-auto">
-                    <i class="pi pi-search"></i>
-                    <input pInputText type="text"
-                           (input)="dtDetails.filterGlobal($any($event.target).value, 'contains')"
-                           placeholder="Buscar"/>
-                </span>
-        </div>
-      </ng-template>
-      <ng-template pTemplate="header">
-        <tr>
-          <th scope="col" class="text-center" pSortableColumn="quantity">Cantidad
-            <p-sortIcon field="quantity"></p-sortIcon>
-          </th>
-          <th scope="col" class="text-center" pSortableColumn="description">Descripcion
-            <p-sortIcon field="description"></p-sortIcon>
-          </th>
-          <th scope="col" class="text-center" pSortableColumn="price">Costo unitario
-            <p-sortIcon field="cost"></p-sortIcon>
-          </th>
-          <th scope="col" class="text-center" pSortableColumn="price">Compras afectas
-            <p-sortIcon field="total_cost"></p-sortIcon>
-          </th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-detail>
-        <tr>
-          <td class="text-center">{{detail.quantity}}</td>
-          <td>{{detail.description}}</td>
-          <td>{{detail.cost | currency}}</td>
-          <td>{{(detail.quantity * detail.cost).toFixed(2) | currency}}</td>
-        </tr>
-      </ng-template>
-    </p-table>
-  </c-modal-body>
-  <c-modal-footer>
-    <button cButton color="secondary" (click)="closeDetails()"><em class="fa-solid fa-xmark"></em> Cerrar</button>
-  </c-modal-footer>
-</c-modal>
+
+<div class="p-4 bg-gray-50 min-h-screen">
+  <div class="p-card shadow-lg border-round overflow-hidden">
+    <div class="p-card-header p-3 bg-primary text-white flex align-items-center gap-3">
+      <i class="fa-solid fa-file-invoice text-2xl"></i>
+      <span class="text-xl font-bold uppercase tracking-wider">Reporte de Compras y Entradas</span>
+    </div>
+
+    <div class="p-card-body p-4">
+      <div class="p-3 bg-gray-50 border-round-xl border-1 border-gray-200 mb-4 shadow-1">
+        <form [formGroup]="searchForm" class="grid p-fluid align-items-end">
+          <div class="col-12 md:col-3 field">
+            <label class="font-bold text-xs uppercase block mb-1">Nombre Proveedor</label>
+            <input pInputText formControlName="customerName" placeholder="Buscar por nombre..." />
+          </div>
+          <div class="col-12 md:col-2 field">
+            <label class="font-bold text-xs uppercase block mb-1">Desde</label>
+            <p-datepicker formControlName="startDate" [showIcon]="true" [maxDate]="maxDate()" dateFormat="dd/mm/yy"></p-datepicker>
+          </div>
+          <div class="col-12 md:col-2 field">
+            <label class="font-bold text-xs uppercase block mb-1">Hasta</label>
+            <p-datepicker formControlName="endDate" [showIcon]="true" [maxDate]="maxDate()" dateFormat="dd/mm/yy"></p-datepicker>
+          </div>
+          <div class="col-12 md:col-2 field">
+            <label class="font-bold text-xs uppercase block mb-1">Categorías</label>
+            <p-multiSelect [options]="categories()" formControlName="categories" optionLabel="name" placeholder="Seleccionar" display="chip"></p-multiSelect>
+          </div>
+          <div class="col-12 md:col-2 field">
+            <label class="font-bold text-xs uppercase block mb-1">Localidad</label>
+            <p-select [options]="locations()" formControlName="location" optionLabel="name" placeholder="Todas"></p-select>
+          </div>
+          <div class="col-12 md:col-1 mb-3">
+            <p-button label="Buscar" icon="pi pi-search" (onClick)="search()" [loading]="loading()"></p-button>
+          </div>
+        </form>
+      </div>
+
+      <p-table #dt [value]="purchases()" [loading]="loading()" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped shadow-1">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem"></th><th pSortableColumn="created_at">Fecha</th><th pSortableColumn="total" class="text-right">Total</th><th>Proveedor</th><th>Ubicación</th><th class="text-center">Estado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-purchase>
+          <tr>
+            <td><p-button icon="pi pi-eye" [text]="true" (onClick)="seeDetails(purchase)"></p-button></td>
+            <td>{{ utilitiesService.formatDate(purchase.created_at, 'DD/MM/YYYY HH:mm') }}</td>
+            <td class="text-right font-bold text-primary">{{ purchase.total | currency }}</td>
+            <td>{{ purchase.tradename }}</td>
+            <td>{{ purchase.location_name }}</td>
+            <td class="text-center"><p-tag [value]="purchase.active ? 'ACTIVA' : 'ANULADA'" [severity]="purchase.active ? 'success' : 'warn'" [rounded]="true"></p-tag></td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr><td colspan="6" class="text-center p-5 text-gray-400">No se encontraron compras.</td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '70vw'}">
+  <p-table [value]="details()" styleClass="p-datatable-sm mt-3">
+    <ng-template pTemplate="header">
+      <tr><th>Cant.</th><th>Descripción</th><th class="text-right">Costo</th><th class="text-right">Subtotal</th></tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-detail>
+      <tr>
+        <td class="text-center font-bold">{{ detail.cantidad }}</td>
+        <td>{{ detail.descripcion }}</td>
+        <td class="text-right">{{ detail.cost | currency }}</td>
+        <td class="text-right font-bold">{{ detail.quantity * detail.cost | currency }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+  <ng-template pTemplate="footer"><p-button label="Cerrar" severity="secondary" [text]="true" (onClick)="isModalVisible.set(false)"></p-button></ng-template>
+</p-dialog>
