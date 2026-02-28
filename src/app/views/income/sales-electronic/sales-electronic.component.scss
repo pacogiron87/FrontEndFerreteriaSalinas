@@ -1,48 +1,85 @@
-:host {
-  ::ng-deep .p-calendar {
-    min-width: -webkit-fill-available !important;
-  }
-}
+.sales-container {
+    background-color: var(--p-surface-ground);
+    color: var(--p-text-color);
+    transition: background-color 0.2s, color 0.2s;
 
-::ng-deep.p-inputtext {
-  padding: 0.4rem 0.75rem !important;
-  font-size: 0.875rem;
-}
+    .sales-view-header {
+        .sales-title {
+            color: var(--p-text-color);
+        }
 
-::ng-deep#product-label {
-  padding-bottom: 0.2rem !important;
-}
+        .sales-subtitle {
+            color: var(--p-text-muted-color);
+        }
+    }
 
-::ng-deep#btn-add-product {
-  margin-top: -0.3rem;
-}
+    .sales-filter-card,
+    .sales-card,
+    .sales-action-card,
+    .sales-customer-info-card,
+    .sales-product-table,
+    .sales-log-message {
+        background-color: var(--p-surface-section);
+        border-color: var(--p-content-border-color);
+        transition: background-color 0.2s, border-color 0.2s;
+    }
 
-::ng-deep#btn-new-customer {
-  margin-top: 1.8rem;
-  margin-bottom: 2rem;
-}
+    ::ng-deep .sales-datatable {
+        .p-datatable-header {
+            background: transparent;
+            border: none;
+            padding: 0 0 1.5rem 0;
+            border-bottom: 1px solid var(--p-content-border-color);
+        }
 
-::ng-deep#btn-search-historic {
-  margin-top: 1.8rem;
-  margin-bottom: 2rem;
-}
+        .p-datatable-thead>tr>th {
+            background-color: var(--p-surface-ground);
+            color: var(--p-text-color);
+            border-width: 0 0 1px 0;
+        }
 
-::ng-deep#switch-customer {
-  margin-top: -1.5rem;
-}
+        .p-datatable-tbody>tr>td {
+            border-width: 0 0 1px 0;
+            border-color: var(--p-content-border-color);
+        }
+    }
 
-::ng-deep#column-table {
-  padding: 1rem !important;
-}
+    .sales-filter-label,
+    .sales-customer-label {
+        color: var(--p-text-muted-color);
+    }
 
-::ng-deep#switch-tax {
-  margin-top: 1.7rem;
-}
+    .sales-table-header {
+        background-color: var(--p-surface-section);
+        color: var(--p-text-muted-color);
+        border-bottom-color: var(--p-content-border-color);
+    }
 
-::ng-deep#invoice-label {
-  text-align: right !important;
-}
+    .sales-td-muted {
+        color: var(--p-text-muted-color);
+    }
 
-::ng-deep.btn-modal-buttons {
-  height: fit-content !important;
+    .sales-td-bold {
+        color: var(--p-text-color);
+    }
+
+    .sales-action-section {
+        background-color: var(--p-surface-section);
+        border-color: var(--p-content-border-color);
+    }
+
+    .sales-action-footer {
+        border-top-color: var(--p-content-border-color) !important;
+    }
+
+    .sales-product-table-header th {
+        background-color: var(--p-surface-section);
+        color: var(--p-text-color);
+        border-bottom-color: var(--p-content-border-color);
+    }
+
+    .sales-header-accent {
+        color: var(--p-primary-color);
+        border-left-color: var(--p-primary-color) !important;
+    }
 }

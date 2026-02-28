@@ -1,3 +1,4 @@
+/* Custom styles have been migrated to utility classes according to new architectural standards. */
 /* You can add global styles to this file, and also import other style files */
 // If you want to override variables do it here
 @import "variables";
@@ -20,9 +21,10 @@ $enable-rtl: true;
 // Global adjustments for PrimeNG + PrimeFlex alignment
 body {
     margin: 0;
-    font-family: var(--font-family);
-    background-color: var(--surface-ground);
-    color: var(--text-color);
+    font-family: 'Roboto', sans-serif;
+    /* Applied Roboto globally per Material Design */
+    background-color: var(--p-surface-ground);
+    color: var(--p-text-color);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }

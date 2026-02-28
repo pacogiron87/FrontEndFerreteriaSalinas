@@ -3,14 +3,23 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    background-color: var(--p-surface-ground);
+    color: var(--p-text-color);
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .sidebar-active {
     margin-left: 280px;
 }
 
+.sidebar-collapsed-active {
+    margin-left: 80px;
+}
+
 @media (max-width: 991px) {
-    .sidebar-active {
+
+    .sidebar-active,
+    .sidebar-collapsed-active {
         margin-left: 0;
     }
 }
@@ -29,4 +38,84 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+:host ::ng-deep .layout-sidebar {
+    background-color: var(--p-surface-section) !important;
+    border-right: 1px solid var(--p-content-border-color) !important;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    &.layout-sidebar-collapsed {
+        .p-panelmenu {
+            .p-panelmenu-header-action {
+                justify-content: center;
+                padding-left: 0;
+                padding-right: 0;
+
+                .p-menuitem-text,
+                .p-submenu-icon {
+                    display: none !important;
+                }
+
+                .p-menuitem-icon {
+                    margin-right: 0 !important;
+                    font-size: 1.25rem;
+                }
+            }
+        }
+    }
+}
+
+.layout-sidebar-header {
+    background-color: var(--p-primary-color);
+    color: var(--p-primary-contrast-color);
+
+    .p-avatar {
+        background-color: var(--p-surface-section);
+        color: var(--p-primary-color);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .layout-sidebar-user-info span:first-child {
+        color: var(--p-primary-contrast-color);
+    }
+
+    .layout-sidebar-user-info span:last-child {
+        color: rgba(255, 255, 255, 0.7);
+    }
+}
+
+:host ::ng-deep .nav-menu-premium {
+    .p-panelmenu-panel {
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .p-panelmenu-header.p-highlight .p-panelmenu-header-action {
+        border-left: 4px solid var(--p-primary-color);
+    }
+
+    .p-menuitem-link.p-highlight {
+        border-left: 4px solid var(--p-primary-color);
+    }
+}
+
+.support-panel {
+    background-color: var(--p-surface-section);
+    border-color: var(--p-content-border-color);
+
+    .support-title {
+        color: var(--p-primary-color);
+    }
+
+    .support-desc {
+        color: var(--p-text-muted-color);
+    }
+}
+
+.layout-footer {
+    background-color: var(--p-surface-section);
+    border-color: var(--p-content-border-color);
+    color: var(--p-text-color);
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }

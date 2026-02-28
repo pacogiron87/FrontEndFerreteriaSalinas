@@ -5,7 +5,26 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 
 // PrimeNG 21+ Modern Providers
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeng/themes/aura';
+import Material from '@primeng/themes/material';
+import { definePreset } from '@primeng/themes';
+
+const SakaiPreset = definePreset(Material, {
+  semantic: {
+    primary: {
+      50: '#ecfdf5',
+      100: '#d1fae5',
+      200: '#a7f3d0',
+      300: '#6ee7b7',
+      400: '#34d399',
+      500: '#10b981',
+      600: '#059669',
+      700: '#047857',
+      800: '#065f46',
+      900: '#064e3b',
+      950: '#022c22'
+    }
+  }
+});
 
 // Routes
 import { routes } from './app.routes';
@@ -27,20 +46,24 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withHashLocation(), withViewTransitions()),
     provideHttpClient(),
     provideAnimationsAsync(),
-    
+
     // Official PrimeNG 21 Initialization
     providePrimeNG({
-        theme: {
-            preset: Aura,
-            options: {
-                darkModeSelector: '.my-app-dark'
-            }
-        },
-        ripple: true
+      theme: {
+        preset: SakaiPreset,
+        options: {
+          darkModeSelector: '.app-dark',
+          cssLayer: {
+            name: 'primeng',
+            order: 'tailwind-base, primeng, tailwind-utilities'
+          }
+        }
+      },
+      ripple: true
     }),
 
     // NgRx Configuration
-    provideStore(ROOT_REDUCERS, { 
+    provideStore(ROOT_REDUCERS, {
       metaReducers,
       runtimeChecks: {
         strictStateImmutability: false,

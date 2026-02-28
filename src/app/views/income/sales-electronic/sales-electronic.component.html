@@ -1,190 +1,272 @@
 <p-toast></p-toast>
-<p-confirmDialog [style]="{width: '30vw'}" [baseZIndex]="10000" rejectButtonStyleClass="p-button-text"></p-confirmDialog>
+<p-confirmDialog [style]="{width: '30vw'}" [baseZIndex]="10000"
+  rejectButtonStyleClass="p-button-text"></p-confirmDialog>
 
-<div class="p-4 bg-gray-50 min-h-screen">
-  <div class="p-card shadow-lg border-round overflow-hidden">
-    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
-      <div class="flex align-items-center gap-3">
-        <i class="fa-solid fa-cart-shopping text-2xl"></i>
-        <span class="text-xl font-bold uppercase tracking-wider">Facturación Electrónica (DTE)</span>
-      </div>
-      @if (!isSaleActive() && !isSeeDetails()) {
-        <p-button label="Nueva Venta DTE" icon="pi pi-plus" severity="success" (onClick)="newSale()" pTooltip="Generar nuevo documento electrónico" class="hidden md:block"></p-button>
-      }
+<div class="sales-container p-4 min-h-screen">
+  <div
+    class="sales-view-header flex flex-column md:flex-row justify-content-between align-items-start md:align-items-center mb-5 pt-2">
+    <div>
+      <h1 class="sales-title text-3xl font-bold m-0 mb-1">Registro de Ventas (DTE)</h1>
+      <p class="sales-subtitle m-0">Visualiza, filtra y gestiona los documentos tributarios
+        electrónicos.</p>
     </div>
+    @if (!isSaleActive() && !isSeeDetails()) {
+    <p-button label="Nueva Venta DTE" icon="pi pi-plus" severity="primary" (onClick)="newSale()"
+      class="mt-3 md:mt-0"></p-button>
+    }
+  </div>
 
-    <div class="p-card-body p-4">
-      @if (!isSaleActive() && !isSeeDetails()) {
-        <p-table #dt [loading]="loading()" [value]="sales()" [rowHover]="true" [paginator]="true" [rows]="15" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" [globalFilterFields]="['customer_name','control_number_dte','code_generation_dte','invoice_status']">
-          <ng-template pTemplate="caption">
-            <div class="flex flex-column md:flex-row justify-content-between align-items-center gap-3">
-              <p-button icon="pi pi-plus" severity="success" (onClick)="newSale()" class="md:hidden"></p-button>
-              <span class="p-input-icon-left w-full md:w-auto">
-                <i class="pi pi-search"></i>
-                <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')" placeholder="Buscar por cliente, control, estado..." class="w-full md:w-30rem" />
-              </span>
-              <p-button icon="pi pi-filter-slash" [outlined]="true" (onClick)="dt.clear()" pTooltip="Limpiar filtros"></p-button>
-            </div>
-          </ng-template>
-          <ng-template pTemplate="header">
-            <tr>
-              <th class="text-center">DTE</th>
-              <th class="text-center">Acciones</th>
-              <th pSortableColumn="invoice_type">Tipo <p-sortIcon field="invoice_type"></p-sortIcon></th>
-              <th pSortableColumn="created_at">Fecha <p-sortIcon field="created_at"></p-sortIcon></th>
-              <th pSortableColumn="invoice_total">Total <p-sortIcon field="invoice_total"></p-sortIcon></th>
-              <th pSortableColumn="customer_name">Cliente <p-sortIcon field="customer_name"></p-sortIcon></th>
-              <th pSortableColumn="invoice_status">Estado DTE <p-sortIcon field="invoice_status"></p-sortIcon></th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-sale>
-            <tr>
-              <td class="text-center">
-                <div class="flex justify-content-center gap-1">
-                  @if (sale.control_number_dte && !['Procesado por MH', 'Procesado en MH', 'Notificado por Email','INVALIDADO','Notificado','PROCESADO'].includes(sale.invoice_status.trim())) {
-                    <p-button icon="pi pi-eye" severity="warn" size="small" [rounded]="true" pTooltip="Ver log de error" (onClick)="toggleErrorModal(sale)"></p-button>
-                  }
-                  @if (['Procesado por MH', 'Procesado en MH', 'Notificado por Email'].includes(sale.invoice_status)) {
-                    <p-button icon="pi pi-file-pdf" severity="info" size="small" [rounded]="true" pTooltip="Ver PDF" (onClick)="openDtePdf(sale)"></p-button>
-                    <p-button icon="pi pi-file-edit" severity="success" size="small" [rounded]="true" pTooltip="Descargar JSON" (onClick)="downloadDteJson(sale)"></p-button>
-                    @if (sale.invoice_type.toLowerCase().includes('consumidor')) {
-                      <p-button icon="pi pi-print" severity="help" size="small" [rounded]="true" pTooltip="Imprimir Ticket" (onClick)="openTktDtePdf(sale)"></p-button>
-                    }
-                  }
-                </div>
-              </td>
-              <td class="text-center">
-                <div class="flex justify-content-center gap-1">
-                  @if (sale.invoice_status.trim() !== 'INVALIDADO') {
-                    <p-button icon="pi pi-trash" severity="danger" size="small" [rounded]="true" pTooltip="Anular en MH" (onClick)="cancelSale(sale)"></p-button>
-                  }
-                  @if (['Procesado por MH', 'Procesado en MH', 'Notificado por Email','Notificado','PROCESADO'].includes(sale.invoice_status) && sale.code_generation_dte) {
-                    <p-button icon="pi pi-envelope" severity="primary" size="small" [rounded]="true" pTooltip="Enviar por Email" (onClick)="sendEmail(sale)"></p-button>
-                  }
-                  @if (!['Procesado por MH', 'Procesado en MH', 'Notificado por Email','INVALIDADO'].includes(sale.invoice_status)) {
-                    <p-button icon="pi pi-refresh" severity="warn" size="small" [rounded]="true" pTooltip="Reintentar envío" (onClick)="resend(sale)"></p-button>
-                  }
-                </div>
-              </td>
-              <td><span class="text-xs font-bold">{{sale.invoice_type}}</span></td>
-              <td><span class="text-xs">{{utilitiesService.formatDate(sale.created_at, 'DD/MM/YYYY HH:mm')}}</span></td>
-              <td><span class="font-bold text-primary">{{sale.invoice_total | currency}}</span></td>
-              <td><div class="flex flex-column"><span class="font-bold text-sm">{{sale.customer_name}}</span><small class="text-gray-500 font-mono text-xs">{{sale.control_number_dte || '---'}}</small></div></td>
-              <td class="text-center">
-                <p-tag [value]="sale.invoice_status" [severity]="utilitiesService.getColorFromInvoiceStatus(sale.invoice_status)" [rounded]="true"></p-tag>
-              </td>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="emptymessage">
-            <tr><td colspan="7" class="text-center p-5 text-gray-400 italic">No se encontraron operaciones electrónicas registradas.</td></tr>
-          </ng-template>
-        </p-table>
-      }
-
-      @if (isSaleActive()) {
-        <form [formGroup]="saleForm" class="p-fluid">
-          <div class="flex align-items-center mb-4 gap-3">
-            <p-button icon="pi pi-arrow-left" label="Regresar" severity="secondary" (onClick)="returnSalesList()" class="w-auto"></p-button>
-            <h2 class="m-0 text-xl text-primary font-bold border-left-3 border-primary pl-3">Nueva Operación de Venta DTE</h2>
-          </div>
-
-          <div class="grid mb-4 bg-gray-50 p-4 border-round-xl border-1 border-gray-200 shadow-1">
-            <div class="col-12 md:col-3 field">
-              <label class="font-bold text-sm mb-1 block">Tipo de Documento*</label>
-              <p-select [options]="invoiceTypes" optionLabel="description" optionValue="description" 
-                          [(ngModel)]="invoiceType" [ngModelOptions]="{standalone: true}"
-                          [disabled]="isSelectDisabled() || isRetry()" placeholder="Seleccione DTE"></p-select>
-            </div>
-            <div class="col-12 md:col-3 field">
-              <label class="font-bold text-sm mb-1 block">Localidad*</label>
-              <p-select [options]="locations()" optionLabel="name" formControlName="location" 
-                          [disabled]="isSelectDisabled()" placeholder="Seleccione sucursal"></p-select>
-            </div>
-            <div class="col-12 md:col-4 field">
-              <label class="font-bold text-sm mb-1 block">Cliente*</label>
-              <div class="p-inputgroup">
-                <p-autoComplete formControlName="selectedCustomer" [suggestions]="filteredCustomers()" 
-                                (completeMethod)="filterCustomer($event)" field="name" [minLength]="2"
-                                [forceSelection]="true" placeholder="Buscar cliente..."
-                                [disabled]="isSelectDisabled()" (onSelect)="onSelectCustomer($event)" (onClear)="onClearCustomer()"></p-autoComplete>
-                <p-button icon="pi pi-user-plus" severity="info" [disabled]="isSelectDisabled() || uniqueCustomer()" (onClick)="customerModal()?.toggleModal()"></p-button>
-                <p-button icon="pi pi-history" severity="help" [disabled]="!isSelectedCustomer()" (onClick)="searchSaleCustomerModal()?.toggleModal(saleForm.get('selectedCustomer')?.value)"></p-button>
-              </div>
-            </div>
-            <div class="col-12 md:col-2 field">
-              <label class="font-bold text-sm mb-1 block">Fecha Emisión</label>
-              <p-datepicker formControlName="invoiceDate" [showIcon]="true" [maxDate]="maxDate()" dateFormat="dd/mm/yy"></p-datepicker>
-            </div>
-          </div>
-
-          @if (isSelectedCustomer() && canShowRow()) {
-            <div class="p-card shadow-1 mb-4 border-1 border-gray-200 surface-ground">
-              <div class="p-card-body p-3">
-                <div class="grid align-items-end">
-                  <div class="col-12 md:col-6 field">
-                    <label class="font-bold text-sm mb-1 block text-primary">Añadir Producto</label>
-                    <p-autoComplete formControlName="selectedProduct" [suggestions]="filteredProducts()" 
-                                    (completeMethod)="filterProduct($event)" field="description" [minLength]="2"
-                                    [forceSelection]="true" placeholder="Ingrese nombre o código..."
-                                    (onSelect)="onSelectProduct($event)" (onClear)="onClearProduct()"></p-autoComplete>
-                  </div>
-                  @if (maxQuantity() > 0) {
-                    <div class="col-12 md:col-2 field"><label class="font-bold text-sm">Cantidad</label><p-inputNumber formControlName="quantity" [min]="1" [max]="maxQuantity()" [showButtons]="true"></p-inputNumber></div>
-                    <div class="col-12 md:col-2 field"><label class="font-bold text-sm">Descuento</label><p-inputNumber formControlName="discount" mode="currency" currency="USD" [min]="0" [max]="maxDiscount()"></p-inputNumber></div>
-                    <div class="col-12 md:col-2 mb-3"><p-button label="Agregar" icon="pi pi-plus" severity="success" (onClick)="addProductToSale()"></p-button></div>
-                  }
-                </div>
-              </div>
-            </div>
-
-            <div class="mb-5 shadow-2 border-round-lg overflow-hidden border-1 border-gray-200">
-              <p-table [value]="productsToSale()" styleClass="p-datatable-sm p-datatable-striped" responsiveLayout="scroll">
-                <ng-template pTemplate="header">
-                  <tr class="bg-gray-100">
-                    <th></th><th>Descripción</th><th class="text-center">Cant.</th><th class="text-right">Precio</th><th class="text-right font-bold">Total</th>
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="body" let-product>
-                  <tr>
-                    <td class="text-center"><p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeProduct(product)"></p-button></td>
-                    <td>{{product.description}}</td>
-                    <td class="text-center">{{product.quantity}}</td>
-                    <td class="text-right">{{product.price | currency}}</td>
-                    <td class="text-right font-bold">{{(product.price - product.discount) * product.quantity | currency}}</td>
-                  </tr>
-                </ng-template>
-                <ng-template pTemplate="footer">
-                  @if (productsToSale().length > 0) {
-                    <tr class="bg-primary-reverse text-xl"><td [colSpan]="4" class="text-right font-bold py-3 uppercase">Total Compra</td><td class="text-right font-bold text-primary py-3">{{grandTotal() | currency}}</td></tr>
-                  }
-                </ng-template>
-              </p-table>
-            </div>
-
-            <div class="grid border-top-2 border-gray-200 pt-4 mt-2">
-              <div class="col-12 md:col-8 field"><label class="font-bold text-sm mb-1 block">Observaciones</label><textarea pInputTextarea rows="3" formControlName="comment"></textarea></div>
-              <div class="col-12 md:col-4 flex align-items-end justify-content-end mb-3 gap-3">
-                <p-button [label]="isRetry() ? 'Reenviar a MH' : 'Generar Venta DTE'" icon="pi pi-check-circle" severity="primary" size="large" [disabled]="!saleForm.valid || productsToSale().length === 0" (onClick)="completeSale()"></p-button>
-              </div>
-            </div>
-          }
-        </form>
-      }
+  @if (!isSaleActive() && !isSeeDetails()) {
+  <div class="sales-filter-card p-4 border-round-2xl shadow-1 mb-5 border-1">
+    <div class="grid formgrid p-fluid">
+      <div class="col-12 md:col-6">
+        <label class="sales-filter-label font-medium text-xs font-bold block mb-2 uppercase">Búsqueda
+          rápida</label>
+        <p-iconField iconPosition="left">
+          <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+          <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+            placeholder="Buscar por cliente, RNC, o número DTE..." />
+        </p-iconField>
+      </div>
+      <div class="col-12 md:col-3">
+        <label class="sales-filter-label font-medium text-xs font-bold block mb-2 uppercase">Estado</label>
+        <p-select
+          [options]="[{label: 'Todos los estados', value: null}, {label: 'Procesado por MH', value: 'Procesado'}, {label: 'Invalidado', value: 'INVALIDADO'}, {label: 'Enviado a MH', value: 'Ingresada'}]"
+          placeholder="Todos los estados" optionLabel="label" optionValue="value"
+          (onChange)="dt.filter($any($event).value, 'invoice_status', 'contains')"></p-select>
+      </div>
+      <div class="col-12 md:col-3">
+        <label class="sales-filter-label font-medium text-xs font-bold block mb-2 uppercase">Fecha</label>
+        <div class="flex gap-2">
+          <p-datepicker [showIcon]="true" placeholder="mm/dd/yyyy" styleClass="w-full"></p-datepicker>
+          <p-button icon="pi pi-cloud-download" severity="secondary" [outlined]="true"></p-button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <div class="sales-card border-round-xl shadow-1 border-1 overflow-hidden">
+    <p-table #dt [loading]="loading()" [value]="sales()" [rowHover]="true" [paginator]="true" [rows]="15"
+      styleClass="p-datatable-lg p-datatable-striped sales-datatable"
+      [globalFilterFields]="['customer_name','control_number_dte','code_generation_dte','invoice_status']">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="invoice_number" class="sales-table-header font-semibold text-sm uppercase">
+            N° DTE
+            <p-sortIcon field="invoice_number"></p-sortIcon>
+          </th>
+          <th pSortableColumn="customer_name" class="sales-table-header font-semibold text-sm uppercase">
+            Cliente
+            <p-sortIcon field="customer_name"></p-sortIcon>
+          </th>
+          <th pSortableColumn="invoice_type" class="sales-table-header font-semibold text-sm uppercase">
+            Tipo
+            <p-sortIcon field="invoice_type"></p-sortIcon>
+          </th>
+          <th pSortableColumn="created_at" class="sales-table-header font-semibold text-sm uppercase">
+            Fecha
+            <p-sortIcon field="created_at"></p-sortIcon>
+          </th>
+          <th pSortableColumn="invoice_total" class="sales-table-header font-semibold text-sm uppercase text-right">
+            Total
+            <p-sortIcon field="invoice_total"></p-sortIcon>
+          </th>
+          <th pSortableColumn="invoice_status" class="sales-table-header font-semibold text-sm uppercase text-center">
+            Estado
+            <p-sortIcon field="invoice_status"></p-sortIcon>
+          </th>
+          <th class="sales-table-header font-semibold text-sm uppercase text-center">Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-sale>
+        <tr>
+          <td><span class="sales-td-muted font-mono text-sm">...{{sale.invoice_number | number:'5.0-0'
+              | slice:-5
+              ||
+              '00000'}}</span></td>
+          <td>
+            <div class="flex flex-column">
+              <span class="sales-td-bold font-bold text-sm">{{sale.customer_name}}</span>
+              <div class="sales-td-muted font-mono text-xs flex align-items-center gap-1 mt-1">
+                <i class="pi pi-id-card text-xs"></i>
+                <span>{{ sale.control_number_dte ? 'RNC: ' + sale.control_number_dte.substring(0, 15) + '...' : '---'
+                  }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="text-sm font-medium"
+              [ngClass]="{'text-primary bg-primary-reverse px-2 py-1 border-round': sale.invoice_type.toLowerCase().includes('fiscal')}">
+              {{sale.invoice_type.replace('Factura ', '').replace('Comprobante de ', '')}}
+            </span>
+          </td>
+          <td>
+            <div class="flex flex-column">
+              <span class="text-sm font-medium">{{ utilitiesService.formatDate(sale.created_at, 'DD/MM/YYYY') }}</span>
+              <span class="sales-td-muted text-xs">{{ utilitiesService.formatDate(sale.created_at,
+                'HH:mm a')
+                }}</span>
+            </div>
+          </td>
+          <td class="text-right">
+            <span class="sales-td-bold font-bold text-lg">{{sale.invoice_total | currency}}</span>
+          </td>
+          <td class="text-center">
+            <p-tag [value]="sale.invoice_status"
+              [severity]="utilitiesService.getColorFromInvoiceStatus(sale.invoice_status)" [rounded]="true"></p-tag>
+          </td>
+          <td class="text-center">
+            <p-splitButton label="Ver" icon="pi pi-eye" [model]="getSaleActions(sale)" (onClick)="primaryAction(sale)"
+              styleClass="p-button-outlined p-button-sm p-button-secondary" appendTo="body"></p-splitButton>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="sales-td-muted text-center p-5 italic">No se encontraron operaciones
+            electrónicas
+            registradas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+  }
+
+  @if (isSaleActive()) {
+  <div class="sales-action-card p-4 border-round-2xl shadow-1 border-1">
+    <form [formGroup]="saleForm" class="p-fluid">
+      <div class="flex align-items-center mb-4 gap-3">
+        <p-button icon="pi pi-arrow-left" label="Regresar" severity="secondary" (onClick)="returnSalesList()"
+          class="w-auto"></p-button>
+        <h2 class="m-0 text-xl font-bold border-left-3 border-primary pl-3 sales-header-accent">Nueva Operación de Venta
+          DTE
+        </h2>
+      </div>
+
+      <div class="sales-action-section grid mb-4 p-4 border-round-xl border-1 shadow-1">
+        <div class="col-12 md:col-3 field">
+          <label class="font-bold text-sm mb-1 block">Tipo de Documento*</label>
+          <p-select [options]="invoiceTypes" optionLabel="description" optionValue="description"
+            [(ngModel)]="invoiceType" [ngModelOptions]="{standalone: true}" [disabled]="isSelectDisabled() || isRetry()"
+            placeholder="Seleccione DTE"></p-select>
+        </div>
+        <div class="col-12 md:col-3 field">
+          <label class="font-bold text-sm mb-1 block">Localidad*</label>
+          <p-select [options]="locations()" optionLabel="name" formControlName="location"
+            [disabled]="isSelectDisabled()" placeholder="Seleccione sucursal"></p-select>
+        </div>
+        <div class="col-12 md:col-4 field">
+          <label class="font-bold text-sm mb-1 block">Cliente*</label>
+          <div class="p-inputgroup">
+            <p-autoComplete formControlName="selectedCustomer" [suggestions]="filteredCustomers()"
+              (completeMethod)="filterCustomer($event)" field="name" [minLength]="2" [forceSelection]="true"
+              placeholder="Buscar cliente..." [disabled]="isSelectDisabled()" (onSelect)="onSelectCustomer($event)"
+              (onClear)="onClearCustomer()"></p-autoComplete>
+            <p-button icon="pi pi-user-plus" severity="info" [disabled]="isSelectDisabled() || uniqueCustomer()"
+              (onClick)="customerModal()?.toggleModal()"></p-button>
+            <p-button icon="pi pi-history" severity="help" [disabled]="!isSelectedCustomer()"
+              (onClick)="searchSaleCustomerModal()?.toggleModal(saleForm.get('selectedCustomer')?.value)"></p-button>
+          </div>
+        </div>
+        <div class="col-12 md:col-2 field">
+          <label class="font-bold text-sm mb-1 block">Fecha Emisión</label>
+          <p-datepicker formControlName="invoiceDate" [showIcon]="true" [maxDate]="maxDate()"
+            dateFormat="dd/mm/yy"></p-datepicker>
+        </div>
+      </div>
+
+      @if (isSelectedCustomer() && canShowRow()) {
+      <div class="sales-customer-info-card p-card shadow-1 mb-4 border-1">
+        <div class="p-card-body p-3">
+          <div class="grid align-items-end">
+            <div class="col-12 md:col-6 field">
+              <label class="sales-customer-label font-bold text-sm mb-1 block">Añadir Producto</label>
+              <p-autoComplete formControlName="selectedProduct" [suggestions]="filteredProducts()"
+                (completeMethod)="filterProduct($event)" field="description" [minLength]="2" [forceSelection]="true"
+                placeholder="Ingrese nombre o código..." (onSelect)="onSelectProduct($event)"
+                (onClear)="onClearProduct()"></p-autoComplete>
+            </div>
+            @if (maxQuantity() > 0) {
+            <div class="col-12 md:col-2 field"><label class="font-bold text-sm">Cantidad</label><p-inputNumber
+                formControlName="quantity" [min]="1" [max]="maxQuantity()" [showButtons]="true"></p-inputNumber></div>
+            <div class="col-12 md:col-2 field"><label class="font-bold text-sm">Descuento</label><p-inputNumber
+                formControlName="discount" mode="currency" currency="USD" [min]="0"
+                [max]="maxDiscount()"></p-inputNumber></div>
+            <div class="col-12 md:col-2 mb-3"><p-button label="Agregar" icon="pi pi-plus" severity="success"
+                (onClick)="addProductToSale()"></p-button></div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="sales-product-table mb-5 shadow-2 border-round-lg overflow-hidden border-1">
+        <p-table [value]="productsToSale()" styleClass="p-datatable-sm p-datatable-striped" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr class="sales-product-table-header">
+              <th></th>
+              <th>Descripción</th>
+              <th class="text-center">Cant.</th>
+              <th class="text-right">Precio</th>
+              <th class="text-right font-bold">Total</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-product>
+            <tr>
+              <td class="text-center"><p-button icon="pi pi-trash" severity="danger" [text]="true"
+                  (onClick)="removeProduct(product)"></p-button></td>
+              <td>{{product.description}}</td>
+              <td class="text-center">{{product.quantity}}</td>
+              <td class="text-right">{{product.price | currency}}</td>
+              <td class="text-right font-bold">{{(product.price - product.discount) * product.quantity | currency}}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="footer">
+            @if (productsToSale().length > 0) {
+            <tr class="bg-primary-reverse text-xl">
+              <td [colSpan]="4" class="text-right font-bold py-3 uppercase">Total Compra</td>
+              <td class="text-right font-bold text-primary py-3">{{grandTotal() | currency}}</td>
+            </tr>
+            }
+          </ng-template>
+        </p-table>
+      </div>
+
+      <div class="sales-action-footer grid border-top-2 pt-4 mt-2">
+        <div class="col-12 md:col-8 field"><label class="font-bold text-sm mb-1 block">Observaciones</label><textarea
+            pInputTextarea rows="3" formControlName="comment"></textarea></div>
+        <div class="col-12 md:col-4 flex align-items-end justify-content-end mb-3 gap-3">
+          <p-button [label]="isRetry() ? 'Reenviar a MH' : 'Generar Venta DTE'" icon="pi pi-check-circle"
+            severity="primary" size="large" [disabled]="!saleForm.valid || productsToSale().length === 0"
+            (onClick)="completeSale()"></p-button>
+        </div>
+      </div>
+      }
+    </form>
+  </div>
+  }
 </div>
 
-<p-dialog header="Visor de Documento DTE" [(visible)]="isDteViewerVisible" [modal]="true" [style]="{width: '85vw'}" [maximizable]="true" (onHide)="closeDteViewer()">
-  <div class="surface-ground border-round shadow-2 overflow-hidden">@if (pdfUrl()) { <iframe [src]="pdfUrl() | safe" width="100%" height="700px" frameborder="0"></iframe> }</div>
-  <ng-template pTemplate="footer"><p-button label="Cerrar" icon="pi pi-times" severity="secondary" (onClick)="closeDteViewer()"></p-button></ng-template>
+<p-dialog header="Visor de Documento DTE" [(visible)]="isDteViewerVisible" [modal]="true" [style]="{width: '85vw'}"
+  [maximizable]="true" (onHide)="closeDteViewer()">
+  <div class="surface-ground border-round shadow-2 overflow-hidden">@if (pdfUrl()) { <iframe [src]="pdfUrl() | safe"
+      width="100%" height="700px" frameborder="0"></iframe> }</div>
+  <ng-template pTemplate="footer"><p-button label="Cerrar" icon="pi pi-times" severity="secondary"
+      (onClick)="closeDteViewer()"></p-button></ng-template>
 </p-dialog>
 
 <p-dialog header="Log de Respuesta MH" [(visible)]="isModalErrorVisible" [modal]="true" [style]="{width: '600px'}">
   <div class="p-fluid">
-    <p-tag [value]="dteDetalle()?.estado" [severity]="dteDetalle()?.estado === 'RECHAZADO' ? 'danger' : 'warn'" styleClass="w-full text-lg py-2 mb-3"></p-tag>
-    <div class="field mb-2"><label class="font-bold text-xs block text-gray-500 uppercase">Mensaje</label><div class="p-3 bg-gray-50 border-round font-semibold text-sm border-1 border-gray-200">{{ dteDetalle()?.descripcionMsg }}</div></div>
+    <p-tag [value]="dteDetalle()?.estado" [severity]="dteDetalle()?.estado === 'RECHAZADO' ? 'danger' : 'warn'"
+      styleClass="w-full text-lg py-2 mb-3"></p-tag>
+    <div class="field mb-2"><label class="sales-filter-label font-bold text-xs block uppercase">Mensaje</label>
+      <div class="sales-log-message p-3 border-round font-semibold text-sm border-1">
+        {{
+        dteDetalle()?.descripcionMsg }}</div>
+    </div>
   </div>
-  <ng-template pTemplate="footer"><p-button label="Entendido" icon="pi pi-check" severity="secondary" [text]="true" (onClick)="isModalErrorVisible.set(false)"></p-button></ng-template>
+  <ng-template pTemplate="footer"><p-button label="Entendido" icon="pi pi-check" severity="secondary" [text]="true"
+      (onClick)="isModalErrorVisible.set(false)"></p-button></ng-template>
 </p-dialog>
 
 <app-customer-modal (sendCustomer)="onSelectCustomerModal($event)"></app-customer-modal>

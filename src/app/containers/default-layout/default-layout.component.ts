@@ -47,8 +47,9 @@ export class DefaultLayoutComponent implements OnInit {
   private readonly navigationService = inject(NavigationService);
 
   readonly sidebarVisible = signal(true);
+  readonly sidebarCollapsed = signal(false);
   readonly isMobile = signal(false);
-  
+
   readonly navItems = toSignal(this.navigationService.filteredNavItems$, { initialValue: [] });
   readonly user = toSignal(this.authService.currentUser$());
   readonly isAuthenticated = toSignal(this.authService.isAuthenticated$(), { initialValue: true });
@@ -65,10 +66,16 @@ export class DefaultLayoutComponent implements OnInit {
     this.isMobile.set(window.innerWidth < 992);
     if (this.isMobile()) {
       this.sidebarVisible.set(false);
+    } else {
+      this.sidebarVisible.set(true);
     }
   }
 
   toggleSidebar(): void {
-    this.sidebarVisible.update(v => !v);
+    if (this.isMobile()) {
+      this.sidebarVisible.update(v => !v);
+    } else {
+      this.sidebarCollapsed.update(v => !v);
+    }
   }
 }

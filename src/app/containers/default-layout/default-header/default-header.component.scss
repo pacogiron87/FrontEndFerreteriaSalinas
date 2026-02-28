@@ -1,3 +1,49 @@
 #user-name {
   cursor: default !important;
 }
+
+:host ::ng-deep .layout-topbar {
+  background-color: var(--p-surface-900) !important;
+  border-bottom: 1px solid var(--p-content-border-color) !important;
+  color: var(--p-text-color);
+  transition: background-color 0.2s, border-color 0.2s;
+
+  .topbar-brand {
+    color: var(--p-text-color);
+  }
+
+  /* Hamburger menu using Native Button Primary Color Inherit */
+  .topbar-menu-btn .p-button {
+    color: var(--p-primary-color);
+  }
+
+  .topbar-action-icon .p-button {
+    color: var(--p-text-muted-color);
+
+    &:hover {
+      color: var(--p-text-color);
+      background-color: var(--p-surface-hover);
+    }
+  }
+
+  .topbar-user-profile {
+    &:hover {
+      background-color: var(--p-surface-hover);
+    }
+
+    .topbar-user-name {
+      color: var(--p-text-color);
+    }
+
+    .topbar-user-role,
+    .topbar-chevron {
+      color: var(--p-text-muted-color);
+    }
+
+    .topbar-avatar {
+      background-color: var(--p-surface-800);
+      color: var(--p-primary-color);
+      border-color: var(--p-content-border-color);
+    }
+  }
+}

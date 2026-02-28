@@ -1,37 +1,45 @@
-<p-toolbar styleClass="p-2 bg-primary border-none border-round-none shadow-1">
+<p-toolbar styleClass="layout-topbar p-2 border-none border-round-none shadow-1">
     <div class="p-toolbar-group-start">
-        <div class="flex align-items-center gap-3">
-            <p-button icon="pi pi-bars" (onClick)="sidebarVisible.set(!sidebarVisible())" 
-                      severity="secondary" [text]="true" rounded="true"
-                      class="text-white hover:bg-primary-dark transition-colors transition-duration-300"></p-button>
+        <div class="flex align-items-center gap-3 pl-3">
+            <p-button icon="pi pi-bars" (onClick)="onToggleSidebar()" severity="primary" [text]="true" rounded="true"
+                class="topbar-menu-btn transition-colors transition-duration-300"></p-button>
             <div class="flex align-items-center gap-2">
                 <img src="assets/cernalogo.png" height="35" class="mr-2" alt="Logo" />
-                <span class="text-xl font-bold text-white hidden md:block tracking-tight uppercase">Ferretería Salinas</span>
+                <span class="text-xl font-bold topbar-brand hidden md:block tracking-tight uppercase">Ferretería
+                    Salinas</span>
             </div>
         </div>
     </div>
 
-    <div class="p-toolbar-group-end">
-        <div class="flex align-items-center gap-4">
+    <div class="p-toolbar-group-end pr-3">
+        <div class="flex align-items-center gap-2 md:gap-4">
+            <!-- Theme Toggle -->
+            <p-button [icon]="isDarkMode() ? 'pi pi-sun' : 'pi pi-moon'" (onClick)="toggleDarkMode()"
+                severity="secondary" [text]="true" rounded="true"
+                class="topbar-action-icon transition-colors transition-duration-300" pTooltip="Cambiar Tema"
+                tooltipPosition="bottom"></p-button>
+
             <!-- Notifications (Placeholder) -->
-            <p-button icon="pi pi-bell" severity="secondary" [text]="true" rounded="true" 
-                      class="text-white p-badge-dot" pTooltip="Notificaciones" tooltipPosition="bottom"></p-button>
+            <p-button icon="pi pi-bell" severity="secondary" [text]="true" rounded="true"
+                class="topbar-action-icon p-badge-dot transition-colors transition-duration-300"
+                pTooltip="Notificaciones" tooltipPosition="bottom"></p-button>
 
             <!-- User Info & Dropdown -->
-            <div class="flex align-items-center gap-3 cursor-pointer p-2 border-round hover:bg-white-alpha-10 transition-all transition-duration-200"
-                 (click)="userMenu.toggle($event)">
+            <div class="topbar-user-profile flex align-items-center gap-3 cursor-pointer p-2 border-round transition-all transition-duration-200"
+                (click)="userMenu.toggle($event)">
                 <div class="text-right hidden sm:block">
-                    <div class="text-sm font-bold text-white line-height-2">{{ user()?.name || 'Usuario' }}</div>
-                    <div class="text-xs text-white-alpha-70 line-height-1 capitalize opacity-80">{{ user()?.roles?.toLowerCase() }}</div>
+                    <div class="text-sm font-bold topbar-user-name line-height-2">{{ user()?.name || 'Usuario' }}</div>
+                    <div class="text-xs topbar-user-role line-height-1 capitalize opacity-80">{{
+                        user()?.roles?.toLowerCase() }}</div>
                 </div>
-                <p-avatar [label]="(user()?.name?.charAt(0) || 'U').toUpperCase()" 
-                          styleClass="bg-white text-primary font-bold shadow-1 border-1 border-white-alpha-20" 
-                          size="large" shape="circle"></p-avatar>
-                <i class="pi pi-chevron-down text-white-alpha-70 text-xs"></i>
+                <p-avatar [label]="(user()?.name?.charAt(0) || 'U').toUpperCase()"
+                    styleClass="font-bold shadow-1 border-1 topbar-avatar" size="large" shape="circle"></p-avatar>
+                <i class="pi pi-chevron-down topbar-chevron text-xs"></i>
             </div>
-            
+
             <!-- Hidden User Menu -->
-            <p-menu #userMenu [model]="userMenuItems" [popup]="true" styleClass="mt-2 shadow-4 border-none border-round-xl"></p-menu>
+            <p-menu #userMenu [model]="userMenuItems" [popup]="true"
+                styleClass="mt-2 shadow-4 border-none border-round-xl"></p-menu>
         </div>
     </div>
 </p-toolbar>

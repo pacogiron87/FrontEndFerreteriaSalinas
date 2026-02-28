@@ -6,7 +6,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 
 // PrimeNG 21 Standalone Components
-import { ConfirmationService, SharedModule } from 'primeng/api';
+import { ConfirmationService, SharedModule, MenuItem } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { InputTextModule } from 'primeng/inputtext';
@@ -22,6 +22,9 @@ import { DialogModule } from 'primeng/dialog';
 import { BadgeModule } from 'primeng/badge';
 import { RippleModule } from 'primeng/ripple';
 import { TagModule } from 'primeng/tag';
+import { SplitButtonModule } from 'primeng/splitbutton';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 // Shared Components & Pipes
 import { CustomerModalComponent } from "../../shared/customer-modal/customer-modal.component";
@@ -75,6 +78,9 @@ import { Sale } from '../models/sale.model';
     BadgeModule,
     RippleModule,
     TagModule,
+    SplitButtonModule,
+    IconFieldModule,
+    InputIconModule,
     SafePipe,
     CustomerModalComponent,
     SearchSaleCustomerModalComponent
@@ -125,14 +131,14 @@ export class SalesElectronicComponent implements OnInit {
   readonly isDteViewerVisible = signal(false);
   readonly isCancelVisible = signal(false);
   readonly uniqueCustomer = signal(false);
-  
+
   readonly invoiceType = signal(InvoiceTypeDteRepository[1].description);
   readonly productsToSale = signal<any[]>([]);
   readonly detainedTax = signal(false);
   readonly isMajorTaxpayerCustumer = signal(false);
   readonly isSelectedCustomer = signal(false);
   readonly isPendingPay = signal(false);
-  
+
   readonly dteDetalle = signal<any>(null);
   readonly pdfUrl = signal('');
   readonly src = signal('');
@@ -144,7 +150,7 @@ export class SalesElectronicComponent implements OnInit {
   readonly urlPdfBase = signal(environment.urlPdf);
   readonly urlPdfTkt = signal(environment.urlDteTkt);
   readonly urlPdfDteBase = signal(environment.urlPdfDte);
-  
+
   readonly anonymousCustomer: Customer = {
     address: '', alias: '', businessName: '', commercialBusiness: '', country: 'El Salvador',
     createDate: '', createDateMigration: '', createdBy: '', departmentAddress: '', dui: '',
@@ -206,13 +212,13 @@ export class SalesElectronicComponent implements OnInit {
 
   constructor() {
     this.initForms();
-    
+
     // Correct Signal reactions
     effect(() => {
       const customer = this.savedCustomer();
       if (customer) this.handleCustomerUpdate(customer);
     });
-    
+
     effect(() => {
       const sale = this.addedSale();
       if (sale) this.handleAddedSale(sale);
@@ -329,13 +335,13 @@ export class SalesElectronicComponent implements OnInit {
         exception_sale: p.is_exempt_product ? (p.price * p.quantity) : 0,
         created_at: this.utilitiesService.formatDate(date), description_item: p.description,
         discount: p.discount, id: 0, id_item: p.id, id_sale: 0, location: p.location_id, non_tax_sale: 0,
-        quantity: p.quantity, unit_price: p.price - p.discount, 
+        quantity: p.quantity, unit_price: p.price - p.discount,
         unit_price_non_tax: this.utilitiesService.getCurrencyWithoutTax(p.price - p.discount),
         updated_at: this.utilitiesService.formatDate(date)
       })),
-      sub_total_sale: this.totalSale(), tax_perceived: this.collectedTaxAmount(), 
+      sub_total_sale: this.totalSale(), tax_perceived: this.collectedTaxAmount(),
       tax_reteined: this.detainedTaxAmount(), tax_sale: this.totalTax(),
-      total_sale: this.grandTotal(), updated_at: this.utilitiesService.formatDate(date), 
+      total_sale: this.grandTotal(), updated_at: this.utilitiesService.formatDate(date),
       user_id: this.authService.currentUser!.id, is_retry: this.isRetry(),
       number_resolution_tax: null, tax_credit_sale: 0, tax_non_credit_sale: 0
     };
@@ -366,7 +372,7 @@ export class SalesElectronicComponent implements OnInit {
   closeDteViewer(): void { this.isDteViewerVisible.set(false); this.pdfUrl.set(''); }
   downloadDteJson(sale: Sale): void { this.utilitiesService.downloadFile(this.urlPdfDteBase(), sale.code_generation_dte); }
   sendEmail(sale: Sale): void { this.saleService.addSendEmailDte({ idSale: sale.id, idCustomer: sale.customer_id, codeGeneration: sale.code_generation_dte }); }
-  
+
   toggleErrorModal(sale?: Sale): void {
     if (!sale) { this.isModalErrorVisible.set(false); return; }
     const url = `${environment.urlDteLogs}${sale.control_number_dte}/${sale.control_number_dte}.recepcion.response.json`;
@@ -384,6 +390,41 @@ export class SalesElectronicComponent implements OnInit {
       this.documentService.cancelDocumentDte({ idSale: doc.id_sale, controlNumber: this.invoiceForm.get('controlNumber')?.value, userId: this.authService.currentUser?.id });
       this.isCancelVisible.set(false);
       this.returnSalesList();
+    }
+  }
+
+  getSaleActions(sale: Sale): MenuItem[] {
+    const items: MenuItem[] = [];
+    const isProcessed = ['Procesado por MH', 'Procesado en MH', 'Notificado por Email', 'Notificado', 'PROCESADO'].includes(sale.invoice_status.trim());
+    const isInvalidated = sale.invoice_status.trim() === 'INVALIDADO';
+
+    if (sale.control_number_dte && !isProcessed && !isInvalidated) {
+      items.push({ label: 'Ver error', icon: 'pi pi-exclamation-triangle', command: () => this.toggleErrorModal(sale) });
+    }
+    if (isProcessed) {
+      items.push({ label: 'Descargar JSON', icon: 'pi pi-file-edit', command: () => this.downloadDteJson(sale) });
+      if (sale.invoice_type?.toLowerCase().includes('consumidor')) {
+        items.push({ label: 'Imprimir Ticket', icon: 'pi pi-print', command: () => this.openTktDtePdf(sale) });
+      }
+      if (sale.code_generation_dte) {
+        items.push({ label: 'Enviar por Email', icon: 'pi pi-envelope', command: () => this.sendEmail(sale) });
+      }
+    }
+    if (!isInvalidated) {
+      items.push({ label: 'Anular en MH', icon: 'pi pi-trash', command: () => this.cancelSale(sale) });
+    }
+    if (!isProcessed && !isInvalidated) {
+      items.push({ label: 'Reintentar envío', icon: 'pi pi-refresh', command: () => this.resend(sale) });
+    }
+    return items;
+  }
+
+  primaryAction(sale: Sale): void {
+    const isProcessed = ['Procesado por MH', 'Procesado en MH', 'Notificado por Email', 'Notificado', 'PROCESADO'].includes(sale.invoice_status.trim());
+    if (isProcessed) {
+      this.openDtePdf(sale);
+    } else {
+      this.toggleErrorModal(sale);
     }
   }
 

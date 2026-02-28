@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from "@angular/router";
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -41,6 +41,11 @@ export class DefaultHeaderComponent {
   // Sidebar visibility signal (managed via LayoutService in a real scenario)
   readonly sidebarVisible = signal(true);
 
+  // Dark mode signal
+  readonly isDarkMode = signal(false);
+
+  @Output() toggleSidebar = new EventEmitter<void>();
+
   // User menu items
   readonly userMenuItems: MenuItem[] = [
     {
@@ -72,5 +77,14 @@ export class DefaultHeaderComponent {
 
   goToSettings(): void {
     // Implement settings navigation
+  }
+
+  toggleDarkMode(): void {
+    this.isDarkMode.update(dark => !dark);
+    document.documentElement.classList.toggle('app-dark');
+  }
+
+  onToggleSidebar(): void {
+    this.toggleSidebar.emit();
   }
 }
