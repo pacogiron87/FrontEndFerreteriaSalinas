@@ -65,7 +65,7 @@ export class AccountsReceivableComponent implements OnInit {
   readonly isVisible = signal(false);
   readonly isSelectedCustomer = signal(false);
   readonly modalTitle = signal('Realizar abono');
-  
+
   readonly pendingPayments = toSignal(this.accountsReceivableService.selectFoundPendingPayments(), { initialValue: [] });
   readonly loading = toSignal(this.accountsReceivableService.selectIsLoading(), { initialValue: false });
   readonly customers = toSignal(this.customerService.selectCustomers(), { initialValue: [] });
@@ -79,10 +79,12 @@ export class AccountsReceivableComponent implements OnInit {
 
   paymentForm!: FormGroup;
 
+  private readonly savedPayment = toSignal(this.accountsReceivableService.selectPayment());
+
   constructor() {
     this.initForm();
     effect(() => {
-      const payment = toSignal(this.accountsReceivableService.selectPayment())();
+      const payment = this.savedPayment();
       if (payment && this.isVisible()) {
         this.isVisible.set(false);
         this.refreshData();

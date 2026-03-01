@@ -70,7 +70,7 @@ export class ProductsComponent implements OnInit {
     const categoriesList = this.categories();
     const providersList = this.providers();
     const locationsList = this.locations();
-    
+
     return this.allProducts().map(product => ({
       ...product,
       categoryName: categoriesList.find(c => Number(c.id) === Number(product.category_id))?.name || 'N/A',
@@ -80,9 +80,11 @@ export class ProductsComponent implements OnInit {
     }));
   });
 
+  private readonly savedProduct = toSignal(this.productService.selectSavedProduct());
+
   constructor() {
     effect(() => {
-      const savedProduct = toSignal(this.productService.selectSavedProduct())();
+      const savedProduct = this.savedProduct();
       if (savedProduct) this.handleProductUpdate(savedProduct);
     });
   }
@@ -119,7 +121,7 @@ export class ProductsComponent implements OnInit {
     } else {
       products.push(product);
     }
-    
+
     this.productService.updateProducts(products);
   }
 }

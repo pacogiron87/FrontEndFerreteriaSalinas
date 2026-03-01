@@ -57,7 +57,7 @@ export class ResolutionsComponent implements OnInit {
   readonly resolutionId = signal(0);
   readonly resolutionIsActive = signal(true);
   readonly modalTitle = signal('Agregar resolución');
-  
+
   readonly resolutions = toSignal(this.resolutionService.selectResolutions(), { initialValue: [] });
   readonly loading = toSignal(this.resolutionService.selectIsLoading(), { initialValue: false });
   readonly user = toSignal(this.userService.selectAuthenticateUser());
@@ -66,10 +66,12 @@ export class ResolutionsComponent implements OnInit {
 
   resolutionForm!: FormGroup;
 
+  private readonly savedResolution = toSignal(this.resolutionService.selectSavedResolution());
+
   constructor() {
     this.initForm();
     effect(() => {
-      const saved = toSignal(this.resolutionService.selectSavedResolution())();
+      const saved = this.savedResolution();
       if (saved) this.handleResolutionUpdate(saved);
     });
   }

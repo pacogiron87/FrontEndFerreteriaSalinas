@@ -52,7 +52,7 @@ export class LocationsComponent implements OnInit {
   readonly locationId = signal(0);
   readonly locationIsActive = signal(true);
   readonly modalTitle = signal('Agregar localidad');
-  
+
   // Data from Store
   readonly locations = toSignal(this.locationService.selectLocations(), { initialValue: [] });
   readonly loading = toSignal(this.locationService.selectIsLoading(), { initialValue: true });
@@ -60,12 +60,14 @@ export class LocationsComponent implements OnInit {
   // Form
   locationForm!: FormGroup;
 
+  private readonly savedLocation = toSignal(this.locationService.selectSavedLocation());
+
   constructor() {
     this.initForm();
 
     // Effect for store updates
     effect(() => {
-      const saved = toSignal(this.locationService.selectSavedLocation())();
+      const saved = this.savedLocation();
       if (saved) this.handleLocationUpdate(saved);
     });
   }

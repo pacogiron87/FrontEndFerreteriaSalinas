@@ -63,7 +63,7 @@ export class TransactionsComponent implements OnInit {
   readonly isModalVisible = signal(false);
   readonly isCloseTransactionActive = signal(false);
   readonly isFirstTime = signal(false);
-  
+
   readonly transactions = toSignal(this.transactionService.selectFoundTransactions(), { initialValue: [] });
   readonly locations = toSignal(this.locationService.selectLocations(), { initialValue: [] });
   readonly loading = toSignal(this.transactionService.selectLoading(), { initialValue: false });
@@ -75,17 +75,20 @@ export class TransactionsComponent implements OnInit {
 
   currentTransaction = signal<Transaction | null>(null);
 
+  private readonly endedTransaction = toSignal(this.transactionService.selectEndedTransaction());
+  private readonly changedStatus = toSignal(this.transactionService.selectChangeStatus());
+
   constructor() {
     this.initForms();
     effect(() => {
-      const ended = toSignal(this.transactionService.selectEndedTransaction())();
+      const ended = this.endedTransaction();
       if (ended && ended.status_balance?.toLowerCase().includes('finalizado')) {
         this.refreshList(ended);
         this.isCloseTransactionActive.set(false);
       }
     });
     effect(() => {
-      const changed = toSignal(this.transactionService.selectChangeStatus())();
+      const changed = this.changedStatus();
       if (changed) this.refreshList(changed, true);
     });
   }
@@ -136,7 +139,7 @@ export class TransactionsComponent implements OnInit {
   }
 
   inactiveTransaction(t: Transaction): void { this.transactionService.changeTransactionStatus({ id: t.id, userId: this.authService.currentUser!.id, status: false, comment: 'Inactivo' }); }
-  
+
   closeTransaction(t: Transaction): void {
     this.currentTransaction.set(t);
     this.isCloseTransactionActive.set(true);

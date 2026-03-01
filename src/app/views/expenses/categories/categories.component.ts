@@ -52,16 +52,18 @@ export class CategoriesComponent implements OnInit {
   readonly categoryId = signal(0);
   readonly categoryIsActive = signal(true);
   readonly modalTitle = signal('Agregar categoría');
-  
+
   readonly categories = toSignal(this.categoryService.selectCategories(), { initialValue: [] });
   readonly loading = toSignal(this.categoryService.selectIsLoading(), { initialValue: true });
 
   categoryForm!: FormGroup;
 
+  readonly savedCategory = toSignal(this.categoryService.selectSavedCategory());
+
   constructor() {
     this.initForm();
     effect(() => {
-      const saved = toSignal(this.categoryService.selectSavedCategory())();
+      const saved = this.savedCategory();
       if (saved) this.handleCategoryUpdate(saved);
     });
   }

@@ -58,7 +58,7 @@ export class OutputsComponent implements OnInit {
 
   readonly isOutputActive = signal(false);
   readonly isSeeDetails = signal(false);
-  
+
   readonly outputs = toSignal(this.outputService.selectFoundOutputs(), { initialValue: [] });
   readonly locations = toSignal(this.locationService.selectLocations(), { initialValue: [] });
   readonly loading = toSignal(this.outputService.selectLoading(), { initialValue: false });
@@ -68,14 +68,17 @@ export class OutputsComponent implements OnInit {
 
   outputForm!: FormGroup;
 
+  private readonly savedOutput = toSignal(this.outputService.selectSavedOutput());
+  private readonly changedStatus = toSignal(this.outputService.selectChangeStatus());
+
   constructor() {
     this.initForm();
     effect(() => {
-      const saved = toSignal(this.outputService.selectSavedOutput())();
+      const saved = this.savedOutput();
       if (saved) this.handleOutputUpdate(saved);
     });
     effect(() => {
-      const changed = toSignal(this.outputService.selectChangeStatus())();
+      const changed = this.changedStatus();
       if (changed) this.handleStatusUpdate(changed);
     });
   }

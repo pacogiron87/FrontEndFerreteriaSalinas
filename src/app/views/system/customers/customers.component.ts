@@ -54,10 +54,12 @@ export class CustomersComponent implements OnInit {
   readonly allCustomers = toSignal(this.customerService.selectCustomers(), { initialValue: [] });
   readonly loading = toSignal(this.customerService.selectIsLoading(), { initialValue: true });
 
+  private readonly savedCustomer = toSignal(this.customerService.selectSavedCustomer());
+
   constructor() {
     // Effect to handle real-time store updates
     effect(() => {
-      const saved = toSignal(this.customerService.selectSavedCustomer())();
+      const saved = this.savedCustomer();
       if (saved) this.handleCustomerUpdate(saved);
     });
   }
