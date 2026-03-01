@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas"
@@ -8,6 +8,7 @@ import {Sale} from "src/app/views/income/models/sale.model";
 import {environment} from "src/environments/environment";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-invoice',
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss']

@@ -24,7 +24,7 @@
           rápida</label>
         <p-iconField iconPosition="left">
           <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
-          <input pInputText type="text" (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+          <input pInputText type="text" (input)="onFilterGlobal($event)"
             placeholder="Buscar por cliente, RNC, o número DTE..." />
         </p-iconField>
       </div>
@@ -33,7 +33,7 @@
         <p-select
           [options]="[{label: 'Todos los estados', value: null}, {label: 'Procesado por MH', value: 'Procesado'}, {label: 'Invalidado', value: 'INVALIDADO'}, {label: 'Enviado a MH', value: 'Ingresada'}]"
           placeholder="Todos los estados" optionLabel="label" optionValue="value"
-          (onChange)="dt.filter($any($event).value, 'invoice_status', 'contains')"></p-select>
+          (onChange)="onFilterStatus($any($event).value)"></p-select>
       </div>
       <div class="col-12 md:col-3">
         <label class="sales-filter-label font-medium text-xs font-bold block mb-2 uppercase">Fecha</label>
@@ -46,6 +46,7 @@
   </div>
 
   <div class="sales-card border-round-xl shadow-1 border-1 overflow-hidden">
+    @defer (on viewport) {
     <p-table #dt [loading]="loading()" [value]="sales()" [rowHover]="true" [paginator]="true" [rows]="15"
       styleClass="p-datatable-lg p-datatable-striped sales-datatable"
       [globalFilterFields]="['customer_name','control_number_dte','code_generation_dte','invoice_status']">
@@ -130,6 +131,9 @@
         </tr>
       </ng-template>
     </p-table>
+    } @placeholder {
+    <div class="p-5 text-center bg-gray-50 text-gray-400 border-round-lg font-medium">Cargando registros...</div>
+    }
   </div>
   }
 

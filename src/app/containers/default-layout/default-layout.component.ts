@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from "@angular/router";
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -22,6 +22,7 @@ import { AuthService } from "../../core/services/auth.service";
 import { NavigationService } from "../../core/services/navigation.service";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-dashboard',
   standalone: true,
   imports: [

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -34,6 +34,7 @@ import { Sale } from "src/app/views/income/models/sale.model";
 import { Location } from "src/app/views/expenses/models/location.model";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-sales-report',
   standalone: true,
   imports: [

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed, Output, EventEmitter } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from "@angular/router";
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -16,6 +16,7 @@ import { RippleModule } from 'primeng/ripple';
 import { AuthService } from "src/app/core/services/auth.service";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-default-header',
   standalone: true,
   imports: [
@@ -44,7 +45,7 @@ export class DefaultHeaderComponent {
   // Dark mode signal
   readonly isDarkMode = signal(false);
 
-  @Output() toggleSidebar = new EventEmitter<void>();
+  readonly toggleSidebar = output<void>();
 
   // User menu items
   readonly userMenuItems: MenuItem[] = [

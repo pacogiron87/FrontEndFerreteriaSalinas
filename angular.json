@@ -27,8 +27,7 @@
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
-              "src/polyfills.ts",
-              "zone.js"
+              "src/polyfills.ts"
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -110,8 +109,7 @@
           "options": {
             "main": "src/test.ts",
             "polyfills": [
-              "src/polyfills.ts",
-              "zone.js"
+              "src/polyfills.ts"
             ],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",

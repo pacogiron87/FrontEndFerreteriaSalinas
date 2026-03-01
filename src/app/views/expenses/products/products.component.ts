@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, viewChild, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, viewChild, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -28,6 +28,7 @@ import { UtilitiesService } from "src/app/core/helpers/utilities.service";
 import { Product } from "../models/product.model";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-products',
   standalone: true,
   imports: [

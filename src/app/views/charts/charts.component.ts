@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 // PrimeNG Modules
@@ -6,6 +6,7 @@ import { ChartModule } from 'primeng/chart';
 import { CardModule } from 'primeng/card';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-charts',
   standalone: true,
   imports: [

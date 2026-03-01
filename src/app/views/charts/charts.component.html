@@ -1,24 +1,39 @@
 <div class="p-4 bg-gray-50 min-h-screen">
-  
+
   <div class="grid">
     <!-- Bar Chart Card -->
     <div class="col-12 lg:col-6">
       <p-card header="GitHub Commits" styleClass="shadow-2 border-round-xl mb-4">
+        @defer (on viewport) {
         <p-chart type="bar" [data]="chartBarData()"></p-chart>
+        } @placeholder {
+        <div class="h-15rem bg-gray-100 flex align-items-center justify-content-center border-round-lg">Cargando
+          gráfico...</div>
+        }
       </p-card>
     </div>
 
     <!-- Line Chart Card -->
     <div class="col-12 lg:col-6">
       <p-card header="Ventas por Mes" styleClass="shadow-2 border-round-xl mb-4">
+        @defer (on viewport) {
         <p-chart type="line" [data]="chartLineData()"></p-chart>
+        } @placeholder {
+        <div class="h-15rem bg-gray-100 flex align-items-center justify-content-center border-round-lg">Cargando
+          gráfico...</div>
+        }
       </p-card>
     </div>
 
     <!-- Pie Chart Card -->
     <div class="col-12 lg:col-4">
       <p-card header="Distribución de Colores" styleClass="shadow-2 border-round-xl mb-4">
+        @defer (on viewport) {
         <p-chart type="pie" [data]="chartPieData()"></p-chart>
+        } @placeholder {
+        <div class="h-15rem bg-gray-100 flex align-items-center justify-content-center border-round-lg">Cargando
+          gráfico...</div>
+        }
       </p-card>
     </div>
   </div>

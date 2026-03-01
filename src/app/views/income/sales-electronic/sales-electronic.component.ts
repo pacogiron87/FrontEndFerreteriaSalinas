@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, viewChild, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, viewChild, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -7,7 +7,7 @@ import { map } from 'rxjs/operators';
 
 // PrimeNG 21 Standalone Components
 import { ConfirmationService, SharedModule, MenuItem } from 'primeng/api';
-import { TableModule } from 'primeng/table';
+import { TableModule, Table } from 'primeng/table';
 import { AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -57,6 +57,7 @@ import { SaleDetail } from '../models/sale-detail.model';
 import { Sale } from '../models/sale.model';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-sales-electronic',
   standalone: true,
   imports: [
@@ -107,6 +108,7 @@ export class SalesElectronicComponent implements OnInit {
 
   readonly customerModal = viewChild(CustomerModalComponent);
   readonly searchSaleCustomerModal = viewChild(SearchSaleCustomerModalComponent);
+  readonly dt = viewChild<Table>('dt');
 
   // Store Signals
   readonly sales = toSignal(this.saleService.selectSales(), { initialValue: [] });
@@ -429,6 +431,15 @@ export class SalesElectronicComponent implements OnInit {
   }
 
   returnSalesList(): void { this.isSaleActive.set(false); this.saleService.getAllSales(); }
+
+  onFilterGlobal(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.dt()?.filterGlobal(value, 'contains');
+  }
+
+  onFilterStatus(value: string | null): void {
+    this.dt()?.filter(value, 'invoice_status', 'contains');
+  }
   filterCustomer(event: any): void { const q = event.query.toLowerCase(); this.filteredCustomers.set(this.customers().filter(c => c.name.toLowerCase().includes(q) && c.status)); }
   filterProduct(event: any): void { const q = event.query.toLowerCase(); this.filteredProducts.set(this.products().filter(p => p.description.toLowerCase().includes(q) && p.stock > 0)); }
   changeUniqueCustomer(event: any): void {

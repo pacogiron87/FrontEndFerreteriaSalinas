@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, viewChild, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, viewChild, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -53,6 +53,7 @@ import { SaleDetail } from "../models/sale-detail.model";
 import { Sale } from "../models/sale.model";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-sales',
   standalone: true,
   imports: [

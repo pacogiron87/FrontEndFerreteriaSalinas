@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, output, model, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, output, model, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -22,6 +22,7 @@ import { Customer } from "../../system/models/customer.model";
 import { Municipality } from "../../system/models/municipality.model";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-customer-modal',
   standalone: true,
   imports: [

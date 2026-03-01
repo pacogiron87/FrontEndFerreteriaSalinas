@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, output, model, viewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, output, model, viewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -27,6 +27,7 @@ import { Provider } from "src/app/views/system/models/provider.model";
 import { environment } from "src/environments/environment";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-product-modal',
   standalone: true,
   imports: [

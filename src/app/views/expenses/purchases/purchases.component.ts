@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, viewChild, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, viewChild, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -34,6 +34,7 @@ import { Purchase } from "../models/purchase.model";
 import { PurchaseDetail } from "../models/purchase-detail.model";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-purchases',
   standalone: true,
   imports: [

@@ -1,4 +1,4 @@
-import { ApplicationConfig, isDevMode } from '@angular/core';
+import { ApplicationConfig, isDevMode, provideZonelessChangeDetection } from '@angular/core';
 import { provideRouter, withHashLocation, withViewTransitions } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -43,6 +43,7 @@ import { Title } from '@angular/platform-browser';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZonelessChangeDetection(),
     provideRouter(routes, withHashLocation(), withViewTransitions()),
     provideHttpClient(),
     provideAnimationsAsync(),

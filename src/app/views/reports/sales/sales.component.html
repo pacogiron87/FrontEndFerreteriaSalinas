@@ -16,21 +16,25 @@
           </div>
           <div class="col-12 md:col-2 field">
             <label class="font-bold text-xs mb-1 block uppercase">Desde</label>
-            <p-datepicker formControlName="startDate" [showIcon]="true" [maxDate]="maxDate()" dateFormat="dd/mm/yy"></p-datepicker>
+            <p-datepicker formControlName="startDate" [showIcon]="true" [maxDate]="maxDate()"
+              dateFormat="dd/mm/yy"></p-datepicker>
           </div>
           <div class="col-12 md:col-2 field">
             <label class="font-bold text-xs mb-1 block uppercase">Hasta</label>
-            <p-datepicker formControlName="endDate" [showIcon]="true" [maxDate]="maxDate()" dateFormat="dd/mm/yy"></p-datepicker>
+            <p-datepicker formControlName="endDate" [showIcon]="true" [maxDate]="maxDate()"
+              dateFormat="dd/mm/yy"></p-datepicker>
           </div>
           @if (tabIndex() === 0) {
-            <div class="col-12 md:col-2 field">
-              <label class="font-bold text-xs mb-1 block uppercase">Categoría</label>
-              <p-select [options]="categories()" formControlName="category" optionLabel="name" [filter]="true" placeholder="Todas"></p-select>
-            </div>
+          <div class="col-12 md:col-2 field">
+            <label class="font-bold text-xs mb-1 block uppercase">Categoría</label>
+            <p-select [options]="categories()" formControlName="category" optionLabel="name" [filter]="true"
+              placeholder="Todas"></p-select>
+          </div>
           }
           <div class="col-12 md:col-2 field">
             <label class="font-bold text-xs mb-1 block uppercase">Localidad</label>
-            <p-select [options]="locations()" formControlName="location" optionLabel="name" placeholder="Todas"></p-select>
+            <p-select [options]="locations()" formControlName="location" optionLabel="name"
+              placeholder="Todas"></p-select>
           </div>
           <div class="col-12 md:col-1 mb-3">
             <p-button label="Buscar" icon="pi pi-search" (onClick)="search()" [loading]="loading()"></p-button>
@@ -46,10 +50,17 @@
         </p-tablist>
         <p-tabpanels>
           <p-tabpanel [value]="0">
-            <p-table #dtCurrent [value]="sales()" [loading]="loading()" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+            @defer (on viewport) {
+            <p-table #dtCurrent [value]="sales()" [loading]="loading()" [paginator]="true" [rows]="10"
+              styleClass="p-datatable-sm p-datatable-striped">
               <ng-template pTemplate="header">
                 <tr>
-                  <th>Det.</th><th pSortableColumn="created_at">Fecha</th><th>Cliente</th><th class="text-right">Importe</th><th>No. Factura</th><th>Estado</th>
+                  <th>Det.</th>
+                  <th pSortableColumn="created_at">Fecha</th>
+                  <th>Cliente</th>
+                  <th class="text-right">Importe</th>
+                  <th>No. Factura</th>
+                  <th>Estado</th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-sale>
@@ -59,19 +70,33 @@
                   <td>{{ sale.customer_name }}</td>
                   <td class="text-right font-bold">{{ sale.total_sale | currency }}</td>
                   <td>{{ sale.invoice_number || 'N/A' }}</td>
-                  <td><p-tag [value]="sale.invoice_status" [severity]="utilitiesService.getColorFromInvoiceStatus(sale.invoice_status)" [rounded]="true"></p-tag></td>
+                  <td><p-tag [value]="sale.invoice_status"
+                      [severity]="utilitiesService.getColorFromInvoiceStatus(sale.invoice_status)"
+                      [rounded]="true"></p-tag></td>
                 </tr>
               </ng-template>
               <ng-template pTemplate="emptymessage">
-                <tr><td colspan="6" class="text-center p-4">No se encontraron ventas.</td></tr>
+                <tr>
+                  <td colspan="6" class="text-center p-4">No se encontraron ventas.</td>
+                </tr>
               </ng-template>
             </p-table>
+            } @placeholder {
+            <div class="p-5 text-center bg-gray-50 text-gray-400 border-round-lg font-medium">Cargando registros...
+            </div>
+            }
           </p-tabpanel>
           <p-tabpanel [value]="1">
-            <p-table #dtMigrated [value]="bills()" [loading]="loading()" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+            @defer (on viewport) {
+            <p-table #dtMigrated [value]="bills()" [loading]="loading()" [paginator]="true" [rows]="10"
+              styleClass="p-datatable-sm p-datatable-striped">
               <ng-template pTemplate="header">
                 <tr>
-                  <th>Det.</th><th pSortableColumn="fecha">Fecha</th><th>Cliente</th><th class="text-right">Importe</th><th>Estado</th>
+                  <th>Det.</th>
+                  <th pSortableColumn="fecha">Fecha</th>
+                  <th>Cliente</th>
+                  <th class="text-right">Importe</th>
+                  <th>Estado</th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-bill>
@@ -80,13 +105,20 @@
                   <td>{{ bill.fecha | date: 'dd/MM/yyyy' }}</td>
                   <td>{{ bill.name }}</td>
                   <td class="text-right font-bold">{{ bill.total | currency }}</td>
-                  <td><p-tag [value]="bill.anulada ? 'ANULADA' : 'ACTIVA'" [severity]="bill.anulada ? 'danger' : 'success'" [rounded]="true"></p-tag></td>
+                  <td><p-tag [value]="bill.anulada ? 'ANULADA' : 'ACTIVA'"
+                      [severity]="bill.anulada ? 'danger' : 'success'" [rounded]="true"></p-tag></td>
                 </tr>
               </ng-template>
               <ng-template pTemplate="emptymessage">
-                <tr><td colspan="5" class="text-center p-4">No se encontraron ventas registradas.</td></tr>
+                <tr>
+                  <td colspan="5" class="text-center p-4">No se encontraron ventas registradas.</td>
+                </tr>
               </ng-template>
             </p-table>
+            } @placeholder {
+            <div class="p-5 text-center bg-gray-50 text-gray-400 border-round-lg font-medium">Cargando registros...
+            </div>
+            }
           </p-tabpanel>
         </p-tabpanels>
       </p-tabs>
@@ -98,7 +130,10 @@
   <p-table [value]="details()" styleClass="p-datatable-sm mt-3 shadow-1">
     <ng-template pTemplate="header">
       <tr class="bg-gray-100">
-        <th class="text-center">Cant.</th><th>Descripción</th><th class="text-right">Precio Unit.</th><th class="text-right">Total</th>
+        <th class="text-center">Cant.</th>
+        <th>Descripción</th>
+        <th class="text-right">Precio Unit.</th>
+        <th class="text-right">Total</th>
       </tr>
     </ng-template>
     <ng-template pTemplate="body" let-detail>
@@ -111,6 +146,7 @@
     </ng-template>
   </p-table>
   <ng-template pTemplate="footer">
-    <p-button label="Cerrar" icon="pi pi-times" severity="secondary" [text]="true" (onClick)="isModalVisible.set(false)"></p-button>
+    <p-button label="Cerrar" icon="pi pi-times" severity="secondary" [text]="true"
+      (onClick)="isModalVisible.set(false)"></p-button>
   </ng-template>
 </p-dialog>

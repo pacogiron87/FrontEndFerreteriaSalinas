@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, effect } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -26,6 +26,7 @@ import { Resolution } from "../models/resolution.model";
 import { InvoiceTypeRepository } from "src/app/core/repositories/invoice-type.repository";
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-resolutions',
   standalone: true,
   imports: [
