@@ -1,22 +1,22 @@
 /* Custom styles have been migrated to utility classes according to new architectural standards. */
 /* You can add global styles to this file, and also import other style files */
 // If you want to override variables do it here
-@import "variables";
+@use "variables";
 
 $enable-ltr: true;
 $enable-rtl: true;
 
 // Custom layout and component overrides
-@import "layout";
+@use "layout";
 
 // Some temp fixes
-@import "fixes";
+@use "fixes";
 
 // Prism.js
-@import "examples";
+@use "examples";
 
 // If you want to add something do it here
-@import "custom";
+@use "custom";
 
 // Global adjustments for PrimeNG + PrimeFlex alignment
 body {

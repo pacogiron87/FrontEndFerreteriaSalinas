@@ -2,10 +2,12 @@
   <div class="row"></div>
   <div id="htmlData">
     <table class="table">
-      <tr *ngFor="let detail of sale.saleDetails">
-        <th>{{detail.quantity}}</th>
-        <th>{{detail.description_item}}</th>
-      </tr>
+      @for (detail of sale.saleDetails; track $index) {
+        <tr>
+          <th>{{detail.quantity}}</th>
+          <th>{{detail.description_item}}</th>
+        </tr>
+      }
     </table>
   </div>
 </div>

@@ -9,7 +9,6 @@ import { Card } from 'primeng/card';
 import { InputText } from 'primeng/inputtext';
 import { Button } from 'primeng/button';
 import { Toast } from 'primeng/toast';
-import { Ripple } from 'primeng/ripple';
 import { Password } from 'primeng/password';
 
 // Services
@@ -26,7 +25,6 @@ import { AuthService } from "../../../core/services/auth.service";
     InputText,
     Button,
     Toast,
-    Ripple,
     Password
   ],
   templateUrl: './login.component.html',
@@ -38,7 +36,7 @@ export class LoginComponent implements OnInit {
   private readonly authService = inject(AuthService);
 
   loginForm!: FormGroup;
-  
+
   // Signals
   readonly showPassword = signal(false);
   readonly isLoading = signal(false);
