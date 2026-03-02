@@ -1,9 +1,151 @@
-#show-hide {
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
+/* =========================================================
+   LOGIN LAYOUT & CONTAINERS
+   ========================================================= */
+
+/* Ocupa el 100% del viewport y centra la tarjeta perfectamente */
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100vw;
+  background: var(--p-surface-ground);
+  /* Soporta nativamente dark/light mode */
+  padding: 1.5rem;
+  box-sizing: border-box;
 }
 
-#show-hide-icon {
-  color: #354051;
-  cursor: pointer;
+/* Columna central que contiene logo y login */
+.login-container {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* =========================================================
+   HEADER (Marca y Textos)
+   ========================================================= */
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  .login-logo {
+    height: 6.5rem;
+    margin-bottom: 1rem;
+    object-fit: contain;
+  }
+
+  .login-title {
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--p-text-color);
+    margin: 0;
+    letter-spacing: -0.03em;
+    /* Leve kerning negativo para un toque más premium */
+  }
+
+  .login-subtitle {
+    font-size: 1rem;
+    color: var(--p-text-muted-color);
+    margin: 0.5rem 0 0 0;
+  }
+}
+
+/* =========================================================
+   TARJETA (CARD)
+   ========================================================= */
+
+::ng-deep .login-card {
+  background-color: var(--p-surface-0) !important;
+  border-radius: var(--p-border-radius-xl) !important;
+  /* Sombra generosa y suave para el aspecto Premium elevado */
+  box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.08) !important;
+  padding: 1.5rem 1rem !important;
+  border: 1px solid transparent !important;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+
+  /* Manejo automático del Dark Mode (Alternativa sin box-shadow y con borde sutil) */
+  :host-context(html.app-dark) &,
+  :host-context(.p-dark) & {
+    box-shadow: none !important;
+    border-color: var(--p-surface-border) !important;
+  }
+}
+
+/* =========================================================
+   FORMULARIO
+   ========================================================= */
+
+.login-form-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-form-title {
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--p-primary-color);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 2.5rem 0;
+  /* Mayor espacio inferior por el FloatLabel */
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--p-surface-border);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  /* Separación amplia para que los inputs floten cómodamente */
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+
+  /* Garantiza que los componentes input abarquen el 100% de la tarjeta */
+  .full-width-input {
+    width: 100%;
+
+    /* PrimeNG puede necesitar anulación para los child tags internos */
+    ::ng-deep .p-inputtext,
+    ::ng-deep .p-password,
+    ::ng-deep .p-password-input {
+      width: 100%;
+    }
+  }
+
+  /* Mensajes de error consumiendo tokens semánticos */
+  .error-message {
+    color: var(--p-form-field-error-color, var(--p-red-500));
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    display: block;
+    font-weight: 500;
+  }
+}
+
+/* =========================================================
+   ACCIONES Y PIE
+   ========================================================= */
+
+::ng-deep .login-button {
+  width: 100% !important;
+  margin-top: 0.5rem;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+}
+
+.login-footer {
+  text-align: center;
+  padding-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color);
 }

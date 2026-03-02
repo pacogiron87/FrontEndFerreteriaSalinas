@@ -1,14 +1,14 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 
 import * as actions from '../store/actions/transaction.actions';
 import * as selectors from '../store/selectors/transaction.selectors';
-import {State} from "../store/reducers/transaction.reducer";
+import { State } from "../store/reducers/transaction.reducer";
 
-import {EndTransaction} from "../models/end-transactions.model";
-import {Transaction} from "../models/transaction.model";
+import { EndTransaction } from "../models/end-transactions.model";
+import { Transaction } from "../models/transaction.model";
 
 
 @Injectable({
@@ -30,7 +30,7 @@ export class TransactionService {
   }
 
   addTransaction(transaction: Transaction): void {
-    return this.store.dispatch(actions.addTransaction({transaction}));
+    return this.store.dispatch(actions.addTransaction({ transaction }));
   }
 
   changeTransactionStatus(changeStatusInformation: any): void {
@@ -50,11 +50,19 @@ export class TransactionService {
   }
 
   endTransaction(endTransaction: EndTransaction): void {
-    this.store.dispatch(actions.endTransaction({endTransaction}));
+    this.store.dispatch(actions.endTransaction({ endTransaction }));
   }
 
   updateTransactions(transactions: Transaction[]): void {
-    this.store.dispatch(actions.updateTransactions({transactions}));
+    this.store.dispatch(actions.updateTransactions({ transactions }));
+  }
+
+  clearUpdatedTransaction(): void {
+    this.store.dispatch(actions.updateTransactionSuccess({ updatedTransaction: null as any }));
+  }
+
+  clearChangedStatus(): void {
+    this.store.dispatch(actions.changeTransactionStatusSuccess({ changedTransactionStatus: null as any }));
   }
 
   selectFoundTransactions(): Observable<Transaction[]> {

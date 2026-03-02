@@ -128,11 +128,16 @@ export class OutputsComponent implements OnInit {
     const idx = list.findIndex(x => x.id === o.id);
     if (idx >= 0) list[idx] = o; else list.push(o);
     this.outputService.updateOutputs(list);
+    this.outputService.clearSavedOutput();
   }
 
   private handleStatusUpdate(o: Output): void {
     const list = [...this.outputs()];
     const idx = list.findIndex(x => x.id === o.id);
-    if (idx >= 0) { list[idx] = { ...list[idx], active: o.active }; this.outputService.updateOutputs(list); }
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], active: o.active };
+      this.outputService.updateOutputs(list);
+    }
+    this.outputService.clearChangedStatus();
   }
 }

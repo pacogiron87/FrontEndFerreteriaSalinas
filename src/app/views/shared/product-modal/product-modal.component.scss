@@ -1,0 +1,90 @@
+/* =========================================================
+   MODAL LAYOUT & FORM SPACING
+   ========================================================= */
+
+.product-form {
+    display: flex;
+    flex-direction: column;
+    padding-top: 1.5rem;
+    /* Dar un respiro inicial debajo del título */
+}
+
+/* 
+  Utilizamos CSS Grid nativo para un alineamiento perfecto.
+  Ajusta automáticamente las columnas y brinda una experiencia responsive
+  sin ensuciar el HTML con clases utilitarias.
+*/
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem 1.5rem;
+    /* Gap de fila mayor (2rem) por el espacio que toman los FloatLabel */
+    margin-bottom: 2rem;
+}
+
+/* A partir de pantallas medianas (tablets/desktops) usamos 3 columnas */
+@media screen and (min-width: 768px) {
+    .form-grid {
+        grid-template-columns: repeat(12, 1fr);
+    }
+
+    .form-field {
+        grid-column: span 4;
+        /* Default: Ocupa 4/12 (1/3 de la fila) */
+    }
+
+    .full-width-md {
+        grid-column: span 8;
+        /* Ocupa 8/12 (2/3 de la fila) */
+    }
+}
+
+/* =========================================================
+   FORM ELEMENTS
+   ========================================================= */
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+
+    /* Asegurar que los componentes de PrimeNG tomen el 100% de su celda Grid */
+    .fluid-input {
+        width: 100%;
+
+        ::ng-deep .p-inputtext,
+        ::ng-deep .p-inputnumber-input {
+            width: 100%;
+        }
+    }
+}
+
+/* Estilo especial para el toggle switch alineándolo verticalmente con los inputs */
+.toggle-field {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    padding-top: 0.5rem;
+    /* Compensar la falta de label flotante */
+
+    .toggle-label {
+        font-weight: 600;
+        color: var(--p-text-color);
+        font-size: 0.9rem;
+    }
+}
+
+/* =========================================================
+   FOOTER ACTIONS
+   ========================================================= */
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--p-surface-border);
+    margin-top: 1rem;
+}

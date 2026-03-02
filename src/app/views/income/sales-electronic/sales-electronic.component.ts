@@ -451,11 +451,13 @@ export class SalesElectronicComponent implements OnInit {
   private handleCustomerUpdate(customer: Customer): void {
     const list = [...this.customers()];
     if (!list.find(c => c.id === customer.id)) { list.push(customer); this.customerService.updateCustomers(list); this.saleForm.patchValue({ selectedCustomer: customer }); }
+    this.customerService.clearSavedCustomer();
   }
 
   private handleAddedSale(sale: Sale): void {
     const list = [...this.sales()];
     list.push(sale);
     this.saleService.updateSales(list);
+    this.saleService.clearAddedSale();
   }
 }

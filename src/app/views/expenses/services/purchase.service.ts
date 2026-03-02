@@ -1,13 +1,13 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 
 import * as actions from "../store/actions/purchase.actions";
 import * as selectors from "../store/selectors/purchase.selectors";
-import {State} from "../store/reducers/purchase.reducer";
+import { State } from "../store/reducers/purchase.reducer";
 
-import {Purchase} from "../models/purchase.model";
+import { Purchase } from "../models/purchase.model";
 
 
 @Injectable({
@@ -30,11 +30,15 @@ export class PurchaseService {
   }
 
   addPurchase(purchase: Purchase): void {
-    this.store.dispatch(actions.addPurchase({purchase}));
+    this.store.dispatch(actions.addPurchase({ purchase }));
+  }
+
+  clearAddedPurchase(): void {
+    this.store.dispatch(actions.addPurchaseSuccess({ addedPurchase: null as any }));
   }
 
   updatePurchases(purchases: Purchase[]): void {
-    this.store.dispatch(actions.updatePurchases({purchases}));
+    this.store.dispatch(actions.updatePurchases({ purchases }));
   }
 
   selectFoundPurchases(): Observable<Purchase[]> {

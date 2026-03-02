@@ -14,6 +14,9 @@ import { TagModule } from 'primeng/tag';
 import { CardModule } from 'primeng/card';
 import { RippleModule } from 'primeng/ripple';
 import { TabsModule } from 'primeng/tabs';
+import { FloatLabel } from 'primeng/floatlabel';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 
 // Services
 import { ProviderService } from "../services/provider.service";
@@ -40,7 +43,10 @@ import { Provider } from "../models/provider.model";
     TagModule,
     CardModule,
     RippleModule,
-    TabsModule
+    TabsModule,
+    FloatLabel,
+    IconField,
+    InputIcon
   ],
   templateUrl: './providers.component.html',
   styleUrls: ['./providers.component.scss']
@@ -62,16 +68,17 @@ export class ProvidersComponent implements OnInit {
   readonly providerId = signal(0);
   readonly providerIsActive = signal(true);
   readonly modalTitle = signal('Agregar proveedor');
-  
+
   providerForm!: FormGroup;
 
   constructor() {
     this.initForm();
-    
-    // Correct Signal usage
+
     effect(() => {
       const p = this.savedProvider();
-      if (p) this.handleProviderUpdate(p);
+      if (p) {
+        this.handleProviderUpdate(p);
+      }
     });
   }
 
@@ -126,6 +133,7 @@ export class ProvidersComponent implements OnInit {
     const idx = list.findIndex(x => x.id === p.id);
     if (idx >= 0) list[idx] = p; else list.push(p);
     this.providerService.updateProviders(list);
+    this.providerService.clearSavedProvider();
   }
 
   handleModalChange(event: boolean): void { this.isModalVisible.set(event); if (!event) { this.providerForm.reset(); this.providerId.set(0); } }

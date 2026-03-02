@@ -122,7 +122,7 @@ export class SalesComponent implements OnInit {
   readonly detainedTax = signal(false);
   readonly isSelectedCustomer = signal(false);
   readonly isPendingPay = signal(false);
-  
+
   readonly maxQuantity = signal(0);
   readonly maxDiscount = signal(0);
   readonly minDate = signal(new Date());
@@ -159,13 +159,13 @@ export class SalesComponent implements OnInit {
 
   constructor() {
     this.initForms();
-    
+
     // Correct Reactions
     effect(() => {
       const customer = this.savedCustomer();
       if (customer) this.handleCustomerUpdate(customer);
     });
-    
+
     effect(() => {
       const sale = this.addedSale();
       if (sale) this.handleAddedSale(sale);
@@ -259,7 +259,7 @@ export class SalesComponent implements OnInit {
   }
 
   toggleViewer(sale: Sale): void { this.src.set(`${this.urlPdfBase()}/CF${sale.id}.pdf`); this.isViewerVisible.set(true); }
-  cancelSale(sale: Sale): void { this.confirmationService.confirm({ header: 'Confirmación', message: '¿Está seguro de anular esta venta?', accept: () => {} }); }
+  cancelSale(sale: Sale): void { this.confirmationService.confirm({ header: 'Confirmación', message: '¿Está seguro de anular esta venta?', accept: () => { } }); }
   saveNewCustomer(customer: Customer): void { this.customerService.createCustomer(customer); }
   loadSelectedSale(sale: Sale): void { /* Load logic */ }
   getBalance(): void { /* Balance logic */ }
@@ -271,11 +271,13 @@ export class SalesComponent implements OnInit {
       this.customerService.updateCustomers(list);
       this.saleForm.patchValue({ selectedCustomer: customer });
     }
+    this.customerService.clearSavedCustomer();
   }
 
   private handleAddedSale(sale: Sale): void {
     const list = [...this.sales()];
     list.push(sale);
     this.saleService.updateSales(list);
+    this.saleService.clearAddedSale();
   }
 }

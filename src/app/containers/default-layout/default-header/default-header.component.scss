@@ -3,14 +3,9 @@
 }
 
 :host ::ng-deep .layout-topbar {
-  background-color: var(--p-surface-900) !important;
-  border-bottom: 1px solid var(--p-content-border-color) !important;
-  color: var(--p-text-color);
+  /* Let PrimeNG Toolbar handle its own background and borders based on the active theme */
   transition: background-color 0.2s, border-color 0.2s;
-
-  .topbar-brand {
-    color: var(--p-text-color);
-  }
+  padding: 0.5rem 1rem !important;
 
   /* Hamburger menu using Native Button Primary Color Inherit */
   .topbar-menu-btn .p-button {
@@ -41,7 +36,7 @@
     }
 
     .topbar-avatar {
-      background-color: var(--p-surface-800);
+      background-color: var(--p-surface-100);
       color: var(--p-primary-color);
       border-color: var(--p-content-border-color);
     }

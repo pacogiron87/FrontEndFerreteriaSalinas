@@ -124,5 +124,6 @@ export class ProductsComponent implements OnInit {
     }
 
     this.productService.updateProducts(products);
+    this.productService.clearSavedProduct();
   }
 }

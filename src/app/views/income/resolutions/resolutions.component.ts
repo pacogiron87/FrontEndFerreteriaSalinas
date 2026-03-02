@@ -134,6 +134,7 @@ export class ResolutionsComponent implements OnInit {
       else list[idx] = res;
     } else list.push(res);
     this.resolutionService.updateResolutions(list);
+    this.resolutionService.clearSavedResolution();
   }
 
   handleModalChange(event: boolean): void {

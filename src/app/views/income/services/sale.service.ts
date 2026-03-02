@@ -1,13 +1,13 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 
 import * as actions from '../store/actions/sale.actions';
 import * as selectors from '../store/selectors/sale.selectors';
-import {State} from "../store/reducers/sale.reducer";
+import { State } from "../store/reducers/sale.reducer";
 
-import {Sale} from "../models/sale.model";
+import { Sale } from "../models/sale.model";
 import { EmailParameter } from "../models/email-parameter.model";
 
 
@@ -22,6 +22,10 @@ export class SaleService {
 
   getAllSales(): void {
     this.store.dispatch(actions.getAllSales());
+  }
+
+  clearAddedSale(): void {
+    this.store.dispatch(actions.addSaleSuccess({ addedSale: null as any }));
   }
 
   searchSales(searchInformation: any): void {
@@ -41,14 +45,14 @@ export class SaleService {
   }
 
   addSale(sale: Sale): void {
-    this.store.dispatch(actions.addSale({sale}));
+    this.store.dispatch(actions.addSale({ sale }));
   }
 
   updateSales(sales: Sale[]): void {
-    this.store.dispatch(actions.updateSales({sales}));
+    this.store.dispatch(actions.updateSales({ sales }));
   }
   paySale(sale: Sale): void {
-    this.store.dispatch(actions.paySale({sale}));
+    this.store.dispatch(actions.paySale({ sale }));
   }
 
   selectSales(): Observable<Sale[]> {
@@ -76,15 +80,15 @@ export class SaleService {
   }
 
   addSaleInvoiceDte(sale: Sale): void {
-    this.store.dispatch(actions.addSaleInvoiceDte({sale}));
+    this.store.dispatch(actions.addSaleInvoiceDte({ sale }));
   }
 
   addSaleTaxCreditDte(sale: Sale): void {
-    this.store.dispatch(actions.addSaleTaxCreditDte({sale}));
+    this.store.dispatch(actions.addSaleTaxCreditDte({ sale }));
   }
 
   addSendEmailDte(emailParameters: EmailParameter): void {
-    this.store.dispatch(actions.addSendEmailDte({emailParameters}));
+    this.store.dispatch(actions.addSendEmailDte({ emailParameters }));
   }
 
 }

@@ -1,13 +1,13 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 
-import {State} from "../store/reducers/resolution.reducer";
+import { State } from "../store/reducers/resolution.reducer";
 import * as actions from '../store/actions/resolution.actions';
 import * as selectors from '../store/selectors/resolution.selectors';
 
-import {Resolution} from "../models/resolution.model";
+import { Resolution } from "../models/resolution.model";
 
 
 @Injectable({
@@ -24,15 +24,19 @@ export class ResolutionService {
   }
 
   createResolution(resolution: Resolution): void {
-    this.store.dispatch(actions.createResolution({resolution}));
+    this.store.dispatch(actions.createResolution({ resolution }));
   }
 
   updateResolution(resolution: Resolution): void {
-    this.store.dispatch(actions.updateResolution({resolution}));
+    this.store.dispatch(actions.updateResolution({ resolution }));
   }
 
   updateResolutions(resolutions: Resolution[]): void {
-    this.store.dispatch(actions.updateResolutions({resolutions}));
+    this.store.dispatch(actions.updateResolutions({ resolutions }));
+  }
+
+  clearSavedResolution(): void {
+    this.store.dispatch(actions.updateResolutionSuccess({ savedResolution: null as any }));
   }
 
   selectResolutions(): Observable<Resolution[]> {

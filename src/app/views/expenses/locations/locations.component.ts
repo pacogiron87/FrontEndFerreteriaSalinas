@@ -13,6 +13,9 @@ import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { CardModule } from 'primeng/card';
 import { RippleModule } from 'primeng/ripple';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 // Services
 import { LocationService } from "../services/location.service";
@@ -37,7 +40,10 @@ import { Location } from "../models/location.model";
     ToastModule,
     TagModule,
     CardModule,
-    RippleModule
+    RippleModule,
+    FloatLabelModule,
+    IconFieldModule,
+    InputIconModule
   ],
   templateUrl: './locations.component.html',
   styleUrls: ['./locations.component.scss']
@@ -140,6 +146,7 @@ export class LocationsComponent implements OnInit {
       list.push(location);
     }
     this.locationService.updateLocations(list);
+    this.locationService.clearSavedLocation();
   }
 
   handleModalChange(event: boolean): void {

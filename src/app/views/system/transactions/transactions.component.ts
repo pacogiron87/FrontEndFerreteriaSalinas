@@ -165,7 +165,17 @@ export class TransactionsComponent implements OnInit {
   private refreshList(t: Transaction, isStatus = false): void {
     const list = [...this.transactions()];
     const idx = list.findIndex(x => x.id === t.id);
-    if (idx >= 0) { list[idx] = isStatus ? { ...list[idx], active: t.active, status_balance: 'Inactivo' } : t; this.transactionService.updateTransactions(list); }
+    if (idx >= 0) {
+      list[idx] = isStatus ? { ...list[idx], active: t.active, status_balance: 'Inactivo' } : t;
+      this.transactionService.updateTransactions(list);
+    }
+
+    // Clear the signals to break infinite loops
+    if (isStatus) {
+      this.transactionService.clearChangedStatus();
+    } else {
+      this.transactionService.clearUpdatedTransaction();
+    }
   }
 
   updateAmount(partial: string, denom: number, isQty: boolean): void {

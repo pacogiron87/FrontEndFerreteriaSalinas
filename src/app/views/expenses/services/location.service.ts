@@ -1,13 +1,13 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 
-import {State} from "../store/reducers/location.reducer";
+import { State } from "../store/reducers/location.reducer";
 import * as actions from '../store/actions/location.actions';
 import * as selectors from '../store/selectors/location.selectors';
 
-import {Location} from '../models/location.model';
+import { Location } from '../models/location.model';
 
 
 @Injectable({
@@ -29,19 +29,23 @@ export class LocationService {
   }
 
   createLocation(location: Location): void {
-    this.store.dispatch(actions.createLocation({location}));
+    this.store.dispatch(actions.createLocation({ location }));
   }
 
   updateLocation(location: Location): void {
-    this.store.dispatch(actions.updateLocation({location}));
+    this.store.dispatch(actions.updateLocation({ location }));
   }
 
   updateLocations(locations: Location[]): void {
-    this.store.dispatch(actions.updateLocations({locations}));
+    this.store.dispatch(actions.updateLocations({ locations }));
+  }
+
+  clearSavedLocation(): void {
+    this.store.dispatch(actions.updateLocationSuccess({ savedLocation: null as any }));
   }
 
   changeStatusLocation(id: number, active: boolean): void {
-    this.store.dispatch(actions.changeStatusLocation({id, active}));
+    this.store.dispatch(actions.changeStatusLocation({ id, active }));
   }
 
   selectLocations(): Observable<Location[]> {

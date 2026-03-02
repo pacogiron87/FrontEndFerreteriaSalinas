@@ -10,6 +10,9 @@ import { InputText } from 'primeng/inputtext';
 import { Button } from 'primeng/button';
 import { Toast } from 'primeng/toast';
 import { Password } from 'primeng/password';
+import { FloatLabel } from 'primeng/floatlabel';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 
 // Services
 import { AuthService } from "../../../core/services/auth.service";
@@ -26,7 +29,10 @@ import { AuthService } from "../../../core/services/auth.service";
     InputText,
     Button,
     Toast,
-    Password
+    Password,
+    FloatLabel,
+    IconField,
+    InputIcon
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']

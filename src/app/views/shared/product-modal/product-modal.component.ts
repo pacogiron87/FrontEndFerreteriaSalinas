@@ -12,6 +12,9 @@ import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
+import { FloatLabel } from 'primeng/floatlabel';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 
 // Services
 import { CategoryService } from "src/app/views/expenses/services/category.service";
@@ -41,7 +44,10 @@ import { environment } from "src/environments/environment";
     ButtonModule,
     ToggleSwitchModule,
     TooltipModule,
-    RippleModule
+    RippleModule,
+    FloatLabel,
+    IconField,
+    InputIcon
   ],
   templateUrl: './product-modal.component.html',
   styleUrls: ['./product-modal.component.scss']

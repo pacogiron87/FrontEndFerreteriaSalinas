@@ -1,13 +1,13 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 
-import {State} from "../store/reducers/category.reducer";
+import { State } from "../store/reducers/category.reducer";
 import * as actions from '../store/actions/category.actions';
 import * as selectors from '../store/selectors/category.selectors';
 
-import {Category} from "../models/category.model";
+import { Category } from "../models/category.model";
 
 
 @Injectable({
@@ -29,19 +29,23 @@ export class CategoryService {
   }
 
   createCategory(category: Category): void {
-    this.store.dispatch(actions.createCategory({category}));
+    this.store.dispatch(actions.createCategory({ category }));
   }
 
   updateCategory(category: Category): void {
-    this.store.dispatch(actions.updateCategory({category}));
+    this.store.dispatch(actions.updateCategory({ category }));
   }
 
   updateCategories(categories: Category[]): void {
-    this.store.dispatch(actions.updateCategories({categories}));
+    this.store.dispatch(actions.updateCategories({ categories }));
+  }
+
+  clearSavedCategory(): void {
+    this.store.dispatch(actions.updateCategorySuccess({ savedCategory: null as any }));
   }
 
   changeStatusCategory(id: number, active: boolean): void {
-    this.store.dispatch(actions.changeStatusCategory({id, active}));
+    this.store.dispatch(actions.changeStatusCategory({ id, active }));
   }
 
   selectCategories(): Observable<Category[]> {

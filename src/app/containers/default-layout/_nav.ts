@@ -8,8 +8,8 @@ export interface AppMenuItem extends MenuItem {
 
 export const navItems: AppMenuItem[] = [
   {
-    label: 'Operaciones',
-    separator: true
+    label: 'OPERACIONES',
+    styleClass: 'menu-category-header'
   },
   {
     label: 'Inventario',
@@ -50,7 +50,11 @@ export const navItems: AppMenuItem[] = [
     ]
   },
   {
-    label: 'Sistema',
+    label: 'SISTEMA Y AJUSTES',
+    styleClass: 'menu-category-header'
+  },
+  {
+    label: 'Configuración',
     icon: 'pi pi-fw pi-cog',
     roles: [RoleType.ADMIN, RoleType.MEMBER],
     items: [
@@ -69,8 +73,8 @@ export const navItems: AppMenuItem[] = [
     ]
   },
   {
-    label: 'Reportes',
-    separator: true
+    label: 'REPORTES',
+    styleClass: 'menu-category-header'
   },
   {
     label: 'Ventas',

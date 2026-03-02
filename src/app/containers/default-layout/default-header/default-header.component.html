@@ -1,13 +1,9 @@
 <p-toolbar styleClass="layout-topbar p-2 border-none border-round-none shadow-1">
     <div class="p-toolbar-group-start">
-        <div class="flex align-items-center gap-3 pl-3">
-            <p-button icon="pi pi-bars" (onClick)="onToggleSidebar()" severity="primary" [text]="true" rounded="true"
+        <div class="flex align-items-center gap-3 pl-2">
+            <!-- Hamburger menu only -->
+            <p-button icon="pi pi-bars" (onClick)="onToggleSidebar()" severity="secondary" [text]="true" rounded="true"
                 class="topbar-menu-btn transition-colors transition-duration-300"></p-button>
-            <div class="flex align-items-center gap-2">
-                <img src="assets/cernalogo.png" height="35" class="mr-2" alt="Logo" />
-                <span class="text-xl font-bold topbar-brand hidden md:block tracking-tight uppercase">Ferretería
-                    Salinas</span>
-            </div>
         </div>
     </div>
 

@@ -4,23 +4,22 @@
     flex-direction: column;
     min-height: 100vh;
     background-color: var(--p-surface-ground);
+    /* Fondo general de la App (Gris muy tenue en Light, Oscuro en Dark) */
     color: var(--p-text-color);
     transition: background-color 0.2s, color 0.2s;
 }
 
 .sidebar-active {
     margin-left: 280px;
-}
-
-.sidebar-collapsed-active {
-    margin-left: 80px;
+    width: calc(100% - 280px);
+    /* Forzar que el main tome el resto del espacio y no se solape por debajdo del sidebar absolute de primeng */
 }
 
 @media (max-width: 991px) {
 
-    .sidebar-active,
-    .sidebar-collapsed-active {
+    .sidebar-active {
         margin-left: 0;
+        width: 100%;
     }
 }
 
@@ -41,68 +40,147 @@
 }
 
 :host ::ng-deep .layout-sidebar {
-    background-color: var(--p-surface-section) !important;
+    /* Allow PrimeNG Drawer to use its native theme background variable */
     border-right: 1px solid var(--p-content-border-color) !important;
     transition: background-color 0.2s, border-color 0.2s;
+}
 
-    &.layout-sidebar-collapsed {
-        .p-panelmenu {
-            .p-panelmenu-header-action {
-                justify-content: center;
-                padding-left: 0;
-                padding-right: 0;
+:host ::ng-deep .nav-menu-premium {
 
-                .p-menuitem-text,
-                .p-submenu-icon {
-                    display: none !important;
+    // Quita los fondos rígidos y bordes del panel wrapper de PrimeNG
+    .p-panelmenu-panel {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        margin-bottom: 0.15rem; // Espaciado mucho más sutil entre secciones
+    }
+
+    // Estilos para los Headers Normales (Como "Inventario", "Facturación")
+    .p-panelmenu-header {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+
+        .p-panelmenu-header-action {
+            background: transparent !important;
+            border: none !important;
+            color: var(--p-text-color);
+            transition: background-color 0.2s, color 0.2s;
+            border-radius: var(--p-border-radius-md);
+            padding: 0.85rem 1rem !important;
+
+            .p-menuitem-text {
+                font-weight: 500; // Estilo limpio sin negritas fuertes
+                font-size: 0.95rem;
+            }
+
+            .p-menuitem-icon {
+                color: var(--p-text-muted-color); // Iconos grises por defecto
+                margin-right: 0.75rem !important;
+                font-size: 1.15rem;
+                transition: color 0.2s;
+            }
+
+            // Flecha de acordeón alineada a la derecha
+            .p-submenu-icon {
+                margin-left: auto !important;
+                font-size: 0.85rem;
+                color: var(--p-text-muted-color);
+            }
+
+            &:hover {
+                background-color: var(--p-surface-hover) !important;
+                color: var(--p-text-color) !important;
+
+                .p-menuitem-icon {
+                    color: var(--p-text-color); // Se iluminan al hacer hover
+                }
+            }
+        }
+
+        // Estado Activo / Expandido
+        &.p-highlight .p-panelmenu-header-action {
+            color: var(--p-primary-color) !important;
+            background-color: transparent !important; // Sin fondo en activo como Sakai
+            border: none !important;
+
+            .p-menuitem-icon,
+            .p-submenu-icon {
+                color: var(--p-primary-color) !important;
+            }
+        }
+    }
+
+    // Estilos especiales para nuestros headers falsos ("OPERACIONES", "SISTEMA")
+    .menu-category-header {
+        pointer-events: none; // No clicables
+
+        .p-panelmenu-header-action {
+            padding: 1.5rem 1rem 0.5rem 1rem !important;
+            background: transparent !important;
+
+            // Ocultamos cualqueir ícono
+            .p-menuitem-icon,
+            .p-submenu-icon {
+                display: none !important;
+            }
+
+            // Textos pequeños, grises y en mayúsculas
+            .p-menuitem-text {
+                font-size: 0.75rem !important;
+                text-transform: uppercase !important;
+                font-weight: 700 !important;
+                color: var(--p-text-muted-color) !important;
+                letter-spacing: 0.05em;
+            }
+        }
+    }
+
+    // Área de Contenido de los sub-menús (Los hijos expandidos)
+    .p-panelmenu-content {
+        background: transparent !important;
+        border: none !important;
+        padding: 0.25rem 0 0.5rem 0 !important;
+
+        .p-menuitem {
+            background: transparent !important;
+            margin-top: 2px;
+
+            .p-menuitem-link {
+                background: transparent !important;
+                color: var(--p-text-muted-color);
+                border-radius: var(--p-border-radius-sm);
+                transition: background-color 0.2s, color 0.2s;
+                padding: 0.65rem 1rem 0.65rem 1.5rem !important; // Alineación más a la izquierda, similar al elemento principal
+
+                .p-menuitem-text {
+                    font-size: 0.95rem;
                 }
 
                 .p-menuitem-icon {
-                    margin-right: 0 !important;
-                    font-size: 1.25rem;
+                    margin-right: 0.75rem;
+                    font-size: 1.1rem;
+                    color: inherit; // Hereda el color del texto
+                }
+
+                &:hover {
+                    background-color: var(--p-surface-hover) !important;
+                    color: var(--p-text-color) !important;
+                }
+
+                &.p-highlight {
+                    color: var(--p-primary-color) !important;
+                    background-color: var(--p-surface-hover) !important;
+                    font-weight: 600;
                 }
             }
         }
     }
 }
 
-.layout-sidebar-header {
-    background-color: var(--p-primary-color);
-    color: var(--p-primary-contrast-color);
-
-    .p-avatar {
-        background-color: var(--p-surface-section);
-        color: var(--p-primary-color);
-        border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .layout-sidebar-user-info span:first-child {
-        color: var(--p-primary-contrast-color);
-    }
-
-    .layout-sidebar-user-info span:last-child {
-        color: rgba(255, 255, 255, 0.7);
-    }
-}
-
-:host ::ng-deep .nav-menu-premium {
-    .p-panelmenu-panel {
-        background: transparent !important;
-        border: none !important;
-    }
-
-    .p-panelmenu-header.p-highlight .p-panelmenu-header-action {
-        border-left: 4px solid var(--p-primary-color);
-    }
-
-    .p-menuitem-link.p-highlight {
-        border-left: 4px solid var(--p-primary-color);
-    }
-}
-
 .support-panel {
-    background-color: var(--p-surface-section);
-    border-color: var(--p-content-border-color);
+    background-color: var(--p-surface-hover);
+    border: 1px solid var(--p-content-border-color) !important;
 
     .support-title {
         color: var(--p-primary-color);

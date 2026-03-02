@@ -1,31 +1,44 @@
 <p-toast></p-toast>
 
-<div class="p-4 bg-gray-50 min-h-screen">
-  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
-    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+<div class="p-4 bg-transparent min-h-screen">
+
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4 border-1 border-gray-100">
+    <div class="p-card-header p-3 flex justify-content-between align-items-center"
+      style="background-color: var(--p-surface-section); color: var(--p-text-color);">
       <div class="flex align-items-center gap-3">
-        <i class="fa-solid fa-people-carry-box text-2xl"></i>
-        <span class="text-xl font-bold uppercase tracking-wider">Gestión de Proveedores</span>
+        <i class="fa-solid fa-truck text-2xl" style="color: var(--p-primary-color)"></i>
+        <span class="text-xl font-bold uppercase tracking-wider" style="color: var(--p-text-color);">Gestión de
+          Proveedores</span>
       </div>
-      <p-button label="Nuevo Proveedor" icon="pi pi-plus" severity="success" (onClick)="toggleModal()"></p-button>
+      <p-button label="Nuevo Proveedor" icon="pi pi-plus" severity="success" (onClick)="toggleModal()"
+        pTooltip="Añadir un nuevo proveedor" class="hidden md:block"></p-button>
     </div>
 
     <div class="p-card-body p-4">
-      <p-table #dt [loading]="loading()" [value]="providers()" [rowHover]="true" [paginator]="true" [rows]="25" styleClass="p-datatable-sm p-datatable-striped">
+      <p-table #dt [loading]="loading()" [value]="providers()" [rowHover]="true" [paginator]="true" [rows]="25"
+        styleClass="p-datatable-sm p-datatable-striped">
         <ng-template pTemplate="header">
           <tr>
-            <th class="text-center">Opciones</th><th>Proveedor</th><th>Contacto</th><th>Email</th><th>Móvil</th><th class="text-center">Estado</th>
+            <th class="text-center">Opciones</th>
+            <th>Proveedor</th>
+            <th>Contacto</th>
+            <th>Email</th>
+            <th>Móvil</th>
+            <th class="text-center">Estado</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-provider>
           <tr>
             <td class="text-center">
               <div class="flex justify-content-center gap-2">
-                <p-button icon="pi pi-pencil" severity="warn" size="small" [rounded]="true" (onClick)="toggleModal(provider)"></p-button>
+                <p-button icon="pi pi-pencil" severity="warn" size="small" [rounded]="true"
+                  (onClick)="toggleModal(provider)"></p-button>
                 @if (provider.active) {
-                  <p-button icon="pi pi-trash" severity="danger" size="small" [rounded]="true" (onClick)="changeStatus(provider, false)"></p-button>
+                <p-button icon="pi pi-trash" severity="danger" size="small" [rounded]="true"
+                  (onClick)="changeStatus(provider, false)"></p-button>
                 } @else {
-                  <p-button icon="pi pi-refresh" severity="info" size="small" [rounded]="true" (onClick)="changeStatus(provider, true)"></p-button>
+                <p-button icon="pi pi-refresh" severity="info" size="small" [rounded]="true"
+                  (onClick)="changeStatus(provider, true)"></p-button>
                 }
               </div>
             </td>
@@ -33,19 +46,24 @@
             <td>{{provider.contact_person}}</td>
             <td>{{provider.email}}</td>
             <td>{{provider.mobile}}</td>
-            <td class="text-center"><p-tag [value]="provider.active ? 'Activo' : 'Inactivo'" [severity]="provider.active ? 'success' : 'warn'" [rounded]="true"></p-tag></td>
+            <td class="text-center"><p-tag [value]="provider.active ? 'Activo' : 'Inactivo'"
+                [severity]="provider.active ? 'success' : 'warn'" [rounded]="true"></p-tag></td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
-          <tr><td colspan="6" class="text-center p-5">No se encontraron proveedores registrados.</td></tr>
+          <tr>
+            <td colspan="6" class="text-center p-5">No se encontraron proveedores registrados.</td>
+          </tr>
         </ng-template>
       </p-table>
     </div>
   </div>
 </div>
 
-<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '60vw'}">
-  <form [formGroup]="providerForm" (ngSubmit)="saveChanges()" class="p-fluid">
+<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '60vw'}"
+  [breakpoints]="{'960px': '90vw'}" styleClass="modern-modal">
+
+  <form [formGroup]="providerForm" (ngSubmit)="saveChanges()" class="product-form">
     <p-tabs value="0">
       <p-tablist>
         <p-tab value="0">General</p-tab>
@@ -53,28 +71,96 @@
         <p-tab value="2">Bancario</p-tab>
       </p-tablist>
       <p-tabpanels>
+
         <p-tabpanel value="0">
-          <div class="grid pt-2">
-            <div class="col-12 md:col-6 field"><label class="font-bold">Nombre Comercial*</label><input pInputText formControlName="tradename" /></div>
-            <div class="col-12 md:col-6 field"><label class="font-bold">Nombre Fiscal</label><input pInputText formControlName="fiscal_name" /></div>
-            <div class="col-12 field"><label class="font-bold">Dirección</label><textarea pInputTextarea formControlName="address" rows="2"></textarea></div>
+          <div class="form-grid pt-3" style="grid-template-columns: repeat(2, 1fr);">
+            <!-- Nombre Comercial -->
+            <div class="form-field">
+              <p-floatLabel>
+                <input pInputText id="provTradename" formControlName="tradename" class="fluid-input" />
+                <label for="provTradename">Nombre Comercial*</label>
+              </p-floatLabel>
+            </div>
+
+            <!-- Nombre Fiscal -->
+            <div class="form-field">
+              <p-floatLabel>
+                <input pInputText id="provFiscal" formControlName="fiscal_name" class="fluid-input" />
+                <label for="provFiscal">Nombre Fiscal</label>
+              </p-floatLabel>
+            </div>
+
+            <!-- Dirección (2 columnas) -->
+            <div class="form-field" style="grid-column: span 2;">
+              <p-floatLabel>
+                <textarea pInputTextarea id="provAddress" formControlName="address" rows="3" class="fluid-input">
+                </textarea>
+                <label for="provAddress">Dirección</label>
+              </p-floatLabel>
+            </div>
           </div>
         </p-tabpanel>
+
         <p-tabpanel value="1">
-          <div class="grid pt-2">
-            <div class="col-12 md:col-6 field"><label class="font-bold">Persona de Contacto*</label><input pInputText formControlName="contact_person" /></div>
-            <div class="col-12 md:col-6 field"><label class="font-bold">Móvil*</label><input pInputText formControlName="mobile" /></div>
-            <div class="col-12 field"><label class="font-bold">Email</label><input pInputText formControlName="email" /></div>
+          <div class="form-grid pt-3" style="grid-template-columns: repeat(2, 1fr);">
+            <!-- Persona de Contacto -->
+            <div class="form-field">
+              <p-floatLabel>
+                <p-iconField>
+                  <p-inputIcon class="pi pi-user" />
+                  <input pInputText id="provContact" formControlName="contact_person" class="fluid-input" />
+                </p-iconField>
+                <label for="provContact" style="margin-left: 2rem;">Persona de Contacto*</label>
+              </p-floatLabel>
+            </div>
+
+            <!-- Móvil -->
+            <div class="form-field">
+              <p-floatLabel>
+                <p-iconField>
+                  <p-inputIcon class="pi pi-phone" />
+                  <input pInputText id="provMobile" formControlName="mobile" class="fluid-input" />
+                </p-iconField>
+                <label for="provMobile" style="margin-left: 2rem;">Móvil*</label>
+              </p-floatLabel>
+            </div>
+
+            <!-- Email (2 columnas) -->
+            <div class="form-field" style="grid-column: span 2;">
+              <p-floatLabel>
+                <p-iconField>
+                  <p-inputIcon class="pi pi-envelope" />
+                  <input pInputText id="provEmail" formControlName="email" class="fluid-input" />
+                </p-iconField>
+                <label for="provEmail" style="margin-left: 2rem;">Email</label>
+              </p-floatLabel>
+            </div>
           </div>
         </p-tabpanel>
+
         <p-tabpanel value="2">
-          <div class="field pt-2"><label class="font-bold">Información de Cuentas</label><textarea pInputTextarea formControlName="bank_data" rows="5"></textarea></div>
+          <div class="form-grid pt-3" style="grid-template-columns: 1fr;">
+            <!-- Información Bancaria -->
+            <div class="form-field">
+              <p-floatLabel>
+                <textarea pInputTextarea id="provBank" formControlName="bank_data" rows="5" class="fluid-input">
+                </textarea>
+                <label for="provBank">Información de Cuentas</label>
+              </p-floatLabel>
+            </div>
+          </div>
         </p-tabpanel>
+
       </p-tabpanels>
     </p-tabs>
-    <div class="flex justify-content-end gap-2 pt-4 border-top-1 border-gray-100 mt-2">
-      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="isModalVisible.set(false)"></p-button>
-      <p-button label="Guardar" severity="primary" type="submit" [disabled]="providerForm.invalid"></p-button>
+
+    <!-- Acciones -->
+    <div class="form-actions mt-4 pt-4 border-top-1 border-gray-100 flex justify-content-end gap-2">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="isModalVisible.set(false)" size="large">
+      </p-button>
+      <p-button label="Guardar" severity="primary" type="submit" [disabled]="providerForm.invalid" size="large">
+      </p-button>
     </div>
+
   </form>
 </p-dialog>

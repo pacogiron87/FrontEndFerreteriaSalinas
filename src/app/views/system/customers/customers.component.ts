@@ -99,5 +99,6 @@ export class CustomersComponent implements OnInit {
       list.push(customer);
     }
     this.customerService.updateCustomers(list);
+    this.customerService.clearSavedCustomer();
   }
 }

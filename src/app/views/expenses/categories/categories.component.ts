@@ -14,6 +14,9 @@ import { TagModule } from 'primeng/tag';
 import { CardModule } from 'primeng/card';
 import { RippleModule } from 'primeng/ripple';
 import { SelectModule } from 'primeng/select';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 // Services
 import { CategoryService } from "../services/category.service";
@@ -39,7 +42,10 @@ import { Category } from "../models/category.model";
     TagModule,
     CardModule,
     RippleModule,
-    SelectModule
+    SelectModule,
+    FloatLabelModule,
+    IconFieldModule,
+    InputIconModule
   ],
   templateUrl: './categories.component.html',
   styleUrls: ['./categories.component.scss']
@@ -106,6 +112,7 @@ export class CategoriesComponent implements OnInit {
     if (idx >= 0) { if (!c.name) list[idx] = { ...list[idx], active: !list[idx].active }; else list[idx] = c; }
     else list.push(c);
     this.categoryService.updateCategories(list);
+    this.categoryService.clearSavedCategory();
   }
 
   handleModalChange(event: boolean): void { this.isModalVisible.set(event); if (!event) { this.categoryForm.reset(); this.categoryId.set(0); } }

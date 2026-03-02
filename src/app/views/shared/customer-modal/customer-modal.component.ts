@@ -11,6 +11,7 @@ import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { RippleModule } from 'primeng/ripple';
+import { FloatLabel } from 'primeng/floatlabel';
 import { TooltipModule } from 'primeng/tooltip';
 
 // Services
@@ -36,6 +37,7 @@ import { Municipality } from "../../system/models/municipality.model";
     ButtonModule,
     SelectModule,
     RippleModule,
+    FloatLabel,
     TooltipModule
   ],
   templateUrl: './customer-modal.component.html',
@@ -52,7 +54,7 @@ export class CustomerModalComponent implements OnInit {
   customerId = signal(0);
   customerIsActive = signal(true);
   modalTitle = signal<string>('Agregar cliente');
-  
+
   municipalities = toSignal(this.municipalityService.selectMunicipalities(), { initialValue: [] });
   codeActivities = toSignal(this.codeActivitiesService.selectCodeActivities(), { initialValue: [] });
 

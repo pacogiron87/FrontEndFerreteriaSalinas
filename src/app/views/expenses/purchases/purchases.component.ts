@@ -87,7 +87,7 @@ export class PurchasesComponent implements OnInit {
   readonly isSeeDetails = signal(false);
   readonly isSelectedProduct = signal(false);
   readonly productsToPurchase = signal<any[]>([]);
-  
+
   filteredProducts = signal<Product[]>([]);
 
   readonly totalPurchase = computed(() => this.productsToPurchase().reduce((acc, p) => acc + (p.quantity * p.cost), 0));
@@ -96,13 +96,13 @@ export class PurchasesComponent implements OnInit {
 
   constructor() {
     this.initForm();
-    
+
     // Correct Signals handling
     effect(() => {
       const p = this.addedPurchase();
       if (p) this.handleAddedPurchase(p);
     });
-    
+
     effect(() => {
       const p = this.savedProduct();
       if (p) this.handleSavedProduct(p);
@@ -175,12 +175,17 @@ export class PurchasesComponent implements OnInit {
     this.returnPurchasesList();
   }
 
-  private handleAddedPurchase(p: Purchase): void { this.purchaseService.updatePurchases([...this.purchases(), p]); }
+  private handleAddedPurchase(p: Purchase): void {
+    this.purchaseService.updatePurchases([...this.purchases(), p]);
+    this.purchaseService.clearAddedPurchase();
+  }
+
   private handleSavedProduct(p: Product): void {
     if (!this.products().find(x => x.id === p.id)) {
       this.productService.updateProducts([...this.products(), p]);
       this.onSelectProduct(p);
       this.purchaseForm.patchValue({ selectedProduct: p });
     }
+    this.productService.clearSavedProduct();
   }
 }

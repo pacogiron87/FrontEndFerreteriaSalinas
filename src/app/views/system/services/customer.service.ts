@@ -1,13 +1,13 @@
-import {Injectable} from '@angular/core';
-import {Observable} from "rxjs";
+import { Injectable } from '@angular/core';
+import { Observable } from "rxjs";
 
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 
-import {State} from "../store/reducers/customer.reducer";
+import { State } from "../store/reducers/customer.reducer";
 import * as actions from "../store/actions/customer.actions";
 import * as selectors from "../store/selectors/customer.selectors";
 
-import {Customer} from "../models/customer.model";
+import { Customer } from "../models/customer.model";
 
 
 @Injectable({
@@ -25,15 +25,19 @@ export class CustomerService {
   }
 
   createCustomer(customer: Customer): void {
-    this.store.dispatch(actions.createCustomer({customer}));
+    this.store.dispatch(actions.createCustomer({ customer }));
   }
 
   updateCustomer(customer: Customer): void {
-    this.store.dispatch(actions.updateCustomer({customer}));
+    this.store.dispatch(actions.updateCustomer({ customer }));
   }
 
   updateCustomers(customers: Customer[]): void {
-    this.store.dispatch(actions.updateCustomers({customers}));
+    this.store.dispatch(actions.updateCustomers({ customers }));
+  }
+
+  clearSavedCustomer(): void {
+    this.store.dispatch(actions.updateCustomerSuccess({ savedCustomer: null as any }));
   }
 
   selectCustomers(): Observable<Customer[]> {

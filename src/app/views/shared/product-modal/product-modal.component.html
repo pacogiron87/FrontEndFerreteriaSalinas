@@ -1,19 +1,103 @@
-<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true" [style]="{width: '70vw'}" (onHide)="handleModalChange(false)">
-  <form [formGroup]="productForm" (ngSubmit)="onSaveChanges()" class="p-fluid">
-    <div class="grid pt-3">
-      <div class="col-12 md:col-8 field"><label class="font-bold">Descripción del Producto*</label><input pInputText formControlName="description" /></div>
-      <div class="col-12 md:col-4 field"><label class="font-bold">Código de Barras</label><input pInputText formControlName="barcode" /></div>
-      <div class="col-12 md:col-4 field"><label class="font-bold">Proveedor*</label><p-select [options]="providers()" formControlName="provider_id" optionLabel="tradename" [filter]="true"></p-select></div>
-      <div class="col-12 md:col-4 field"><label class="font-bold">Categoría*</label><p-select [options]="categories()" formControlName="category_id" optionLabel="name" [filter]="true"></p-select></div>
-      <div class="col-12 md:col-4 field"><label class="font-bold">Localidad*</label><p-select [options]="locations()" formControlName="location_id" optionLabel="name"></p-select></div>
-      <div class="col-12 md:col-3 field"><label class="font-bold">Precio de Venta*</label><p-inputNumber formControlName="sale_price" mode="currency" currency="USD"></p-inputNumber></div>
-      <div class="col-12 md:col-3 field"><label class="font-bold">Stock Actual</label><p-inputNumber formControlName="stock"></p-inputNumber></div>
-      <div class="col-12 md:col-3 field"><label class="font-bold">Stock Mínimo*</label><p-inputNumber formControlName="minimum_stock"></p-inputNumber></div>
-      <div class="col-12 md:col-3 flex align-items-center gap-2 pt-3"><label class="font-bold text-sm">Exento</label><p-toggleswitch formControlName="is_exempt_product"></p-toggleswitch></div>
+<p-dialog [header]="modalTitle()" [(visible)]="isModalVisible" [modal]="true"
+  [style]="{width: '70vw', maxWidth: '1000px'}" (onHide)="handleModalChange(false)" styleClass="modern-modal">
+
+  <form [formGroup]="productForm" (ngSubmit)="onSaveChanges()" class="product-form">
+
+    <div class="form-grid">
+
+      <!-- Descripción -->
+      <div class="form-field full-width-md">
+        <p-floatLabel>
+          <input pInputText id="description" formControlName="description" class="fluid-input" />
+          <label for="description">Descripción del Producto*</label>
+        </p-floatLabel>
+      </div>
+
+      <!-- Código de Barras -->
+      <div class="form-field">
+        <p-floatLabel>
+          <p-iconField iconPosition="right">
+            <p-inputIcon styleClass="pi pi-barcode" />
+            <input pInputText id="barcode" formControlName="barcode" class="fluid-input" />
+          </p-iconField>
+          <label for="barcode">Código de Barras</label>
+        </p-floatLabel>
+      </div>
+
+      <!-- Proveedor -->
+      <div class="form-field">
+        <p-floatLabel>
+          <p-select id="provider" [options]="providers()" formControlName="provider_id" optionLabel="tradename"
+            [filter]="true" styleClass="fluid-input">
+          </p-select>
+          <label for="provider">Proveedor*</label>
+        </p-floatLabel>
+      </div>
+
+      <!-- Categoría -->
+      <div class="form-field">
+        <p-floatLabel>
+          <p-select id="category" [options]="categories()" formControlName="category_id" optionLabel="name"
+            [filter]="true" styleClass="fluid-input">
+          </p-select>
+          <label for="category">Categoría*</label>
+        </p-floatLabel>
+      </div>
+
+      <!-- Localidad -->
+      <div class="form-field">
+        <p-floatLabel>
+          <p-select id="location" [options]="locations()" formControlName="location_id" optionLabel="name"
+            styleClass="fluid-input">
+          </p-select>
+          <label for="location">Localidad*</label>
+        </p-floatLabel>
+      </div>
+
+      <!-- Precio de Venta -->
+      <div class="form-field">
+        <p-floatLabel>
+          <p-inputNumber inputId="sale_price" formControlName="sale_price" mode="currency" currency="USD"
+            styleClass="fluid-input">
+          </p-inputNumber>
+          <label for="sale_price">Precio de Venta*</label>
+        </p-floatLabel>
+      </div>
+
+      <!-- Stock Actual -->
+      <div class="form-field">
+        <p-floatLabel>
+          <p-inputNumber inputId="stock" formControlName="stock" styleClass="fluid-input">
+          </p-inputNumber>
+          <label for="stock">Stock Actual</label>
+        </p-floatLabel>
+      </div>
+
+      <!-- Stock Mínimo -->
+      <div class="form-field">
+        <p-floatLabel>
+          <p-inputNumber inputId="minimum_stock" formControlName="minimum_stock" styleClass="fluid-input">
+          </p-inputNumber>
+          <label for="minimum_stock">Stock Mínimo*</label>
+        </p-floatLabel>
+      </div>
+
+      <!-- Exento -->
+      <div class="form-field toggle-field">
+        <label for="exempt" class="toggle-label">Exento de Impuestos</label>
+        <p-toggleswitch inputId="exempt" formControlName="is_exempt_product"></p-toggleswitch>
+      </div>
+
     </div>
-    <div class="flex justify-content-end gap-2 pt-4 border-top-1 border-gray-200 mt-4">
-      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="handleModalChange(false)"></p-button>
-      <p-button label="Guardar" severity="primary" type="submit" [disabled]="productForm.invalid"></p-button>
+
+    <!-- Acciones -->
+    <div class="form-actions">
+      <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="handleModalChange(false)" size="large">
+      </p-button>
+      <p-button label="Guardar" severity="primary" type="submit" [disabled]="productForm.invalid" icon="pi pi-check"
+        size="large">
+      </p-button>
     </div>
+
   </form>
 </p-dialog>

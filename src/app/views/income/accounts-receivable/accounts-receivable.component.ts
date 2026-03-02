@@ -90,6 +90,9 @@ export class AccountsReceivableComponent implements OnInit {
         this.isVisible.set(false);
         this.refreshData();
       }
+      if (payment) {
+        this.accountsReceivableService.clearSavedPayment();
+      }
     });
   }
 

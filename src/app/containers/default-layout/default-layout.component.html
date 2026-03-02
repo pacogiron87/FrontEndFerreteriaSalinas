@@ -1,51 +1,48 @@
 <div class="layout-wrapper flex flex-column min-h-screen overflow-hidden">
 
-  <app-default-header class="z-5 shadow-2" (toggleSidebar)="toggleSidebar()"></app-default-header>
-
   <div class="layout-container flex-grow-1 flex overflow-hidden">
 
     <!-- Sidebar Navigation (PrimeNG 21 Drawer) -->
     <p-drawer [(visible)]="sidebarVisible" [modal]="isMobile()" [dismissible]="isMobile()" [showCloseIcon]="isMobile()"
       [baseZIndex]="1000" styleClass="layout-sidebar p-0 border-none shadow-3 overflow-hidden layout-sidebar-transition"
-      [ngClass]="{'layout-sidebar-collapsed': sidebarCollapsed() && !isMobile()}"
-      [style]="{ width: sidebarCollapsed() && !isMobile() ? '80px' : '280px', transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }">
+      [style]="{ width: '280px', transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }">
 
-      <div class="layout-sidebar-header p-4 flex align-items-center gap-3 mb-2"
-        [ngClass]="{'justify-content-center px-2': sidebarCollapsed()}">
-        <p-avatar [label]="(user()?.name?.charAt(0) || 'U').toUpperCase()" shape="circle"
-          styleClass="font-bold shadow-2 border-2" size="large"></p-avatar>
-        @if (!sidebarCollapsed() || isMobile()) {
-        <div class="flex flex-column layout-sidebar-user-info fadein transition-duration-200">
-          <span class="font-bold text-lg line-height-2 truncate w-10rem">{{ user()?.name || 'Administrador' }}</span>
-          <span class="text-xs font-semibold capitalize tracking-wide">{{ user()?.roles?.toLowerCase() }}</span>
-        </div>
-        }
+      <!-- Logo Header in Sidebar -->
+      <div
+        class="layout-sidebar-header flex align-items-center justify-content-center py-4 px-3 border-bottom-1 border-gray-100"
+        style="height: 70px;">
+        <img src="assets/cernalogo.png" height="40" alt="Logo Cliente" />
+        <span class="text-xl font-bold ml-2 tracking-tight uppercase" style="color: var(--p-text-color);">Kaizen</span>
       </div>
 
-      <p-scrollPanel [style]="{ width: '100%', height: 'calc(100vh - 120px)' }" styleClass="p-2 custom-scroll">
-        <div class="p-2">
-          <p-panelMenu [model]="navItems()"
-            styleClass="nav-menu-premium border-none shadow-none bg-transparent"></p-panelMenu>
-        </div>
+      <p-scrollPanel [style]="{ width: '100%', height: 'calc(100vh - 70px)' }" styleClass="p-2 custom-scroll">
+        <div class="flex flex-column min-h-full">
+          <div class="p-2 flex-grow-1">
+            <p-panelMenu [model]="navItems()"
+              styleClass="nav-menu-premium border-none shadow-none bg-transparent"></p-panelMenu>
+          </div>
 
-        @if (!sidebarCollapsed() || isMobile()) {
-        <div class="support-panel mt-8 p-3 mx-2 border-round-xl border-1 mb-5 fadein transition-duration-200">
-          <h4 class="support-title m-0 mb-2 font-bold text-sm">Soporte Técnico</h4>
-          <p class="support-desc text-xs line-height-3 m-0">soporte@ferreteriasalinas.com</p>
-          <p-button label="WhatsApp" icon="pi pi-whatsapp" severity="success" [text]="true" size="small"
-            class="mt-2"></p-button>
+          <div class="support-panel mt-auto p-3 mx-2 border-round-xl mb-5 fadein transition-duration-200">
+            <h4 class="support-title m-0 mb-2 font-bold text-sm">Soporte Técnico</h4>
+            <p class="support-desc text-xs line-height-3 m-0">soporte@ferreteriasalinas.com</p>
+            <p-button label="WhatsApp" icon="pi pi-whatsapp" severity="success" [text]="true" size="small"
+              class="mt-2"></p-button>
+          </div>
         </div>
-        }
       </p-scrollPanel>
     </p-drawer>
 
+    <!-- Main Content Area (Dynamic Margin) -->
     <main class="layout-main flex-grow-1 flex flex-column overflow-auto transition-all transition-duration-300"
       [ngClass]="{ 
         'ml-0': isMobile() || !sidebarVisible(), 
-        'sidebar-active': sidebarVisible() && !isMobile() && !sidebarCollapsed(),
-        'sidebar-collapsed-active': sidebarVisible() && !isMobile() && sidebarCollapsed()
+        'sidebar-active': sidebarVisible() && !isMobile()
       }">
 
+      <!-- Topbar inside Main so it naturally sits to the right of the Sidebar -->
+      <app-default-header class="z-5 shadow-2 w-full" (toggleSidebar)="toggleSidebar()"></app-default-header>
+
+      <!-- Router Outlet -->
       <div class="p-4 md:p-5 flex-grow-1 fadein animation-duration-500">
         <router-outlet></router-outlet>
       </div>

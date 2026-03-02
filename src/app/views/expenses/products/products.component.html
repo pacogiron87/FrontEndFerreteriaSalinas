@@ -1,12 +1,14 @@
 <p-toast></p-toast>
 
-<div class="p-4 bg-gray-50 min-h-screen">
+<div class="p-4 bg-transparent min-h-screen">
 
-  <div class="p-card shadow-lg border-round overflow-hidden mb-4">
-    <div class="p-card-header p-3 bg-primary text-white flex justify-content-between align-items-center">
+  <div class="p-card shadow-lg border-round overflow-hidden mb-4 border-1 border-gray-100">
+    <div class="p-card-header p-3 flex justify-content-between align-items-center"
+      style="background-color: var(--p-surface-section); color: var(--p-text-color);">
       <div class="flex align-items-center gap-3">
-        <i class="fa-solid fa-store text-2xl"></i>
-        <span class="text-xl font-bold uppercase tracking-wider">Gestión de Productos e Inventario</span>
+        <i class="fa-solid fa-store text-2xl" style="color: var(--p-primary-color)"></i>
+        <span class="text-xl font-bold uppercase tracking-wider" style="color: var(--p-text-color);">Gestión de
+          Productos e Inventario</span>
       </div>
       <p-button label="Nuevo Producto" icon="pi pi-plus" severity="success" (onClick)="productModal()?.toggleModal()"
         pTooltip="Añadir producto al catálogo" class="hidden md:block"></p-button>

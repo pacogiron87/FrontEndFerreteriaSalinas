@@ -1,13 +1,13 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 
-import {State} from "../store/reducers/provider.reducer";
+import { State } from "../store/reducers/provider.reducer";
 import * as actions from '../store/actions/provider.actions';
 import * as selectors from '../store/selectors/provider.selectors';
 
-import {Provider} from "../models/provider.model";
+import { Provider } from "../models/provider.model";
 
 
 @Injectable({
@@ -28,19 +28,23 @@ export class ProviderService {
   }
 
   createProvider(provider: Provider): void {
-    this.store.dispatch(actions.createProvider({provider}));
+    this.store.dispatch(actions.createProvider({ provider }));
   }
 
   updateProvider(provider: Provider): void {
-    this.store.dispatch(actions.updateProvider({provider}));
+    this.store.dispatch(actions.updateProvider({ provider }));
   }
 
   updateProviders(providers: Provider[]): void {
-    this.store.dispatch(actions.updateProviders({providers}));
+    this.store.dispatch(actions.updateProviders({ providers }));
   }
 
   changeStatusProvider(id: number, active: boolean): void {
-    this.store.dispatch(actions.changeStatusProvider({id, active}));
+    this.store.dispatch(actions.changeStatusProvider({ id, active }));
+  }
+
+  clearSavedProvider(): void {
+    this.store.dispatch(actions.updateProviderSuccess({ savedProvider: null as any }));
   }
 
   selectProviders(): Observable<Provider[]> {

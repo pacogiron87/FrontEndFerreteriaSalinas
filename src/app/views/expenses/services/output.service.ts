@@ -1,13 +1,13 @@
-import {Injectable} from "@angular/core";
-import {Observable} from "rxjs";
+import { Injectable } from "@angular/core";
+import { Observable } from "rxjs";
 
-import {Store} from "@ngrx/store";
+import { Store } from "@ngrx/store";
 
 import * as actions from '../store/actions/output.actions';
 import * as selectors from '../store/selectors/output.selectors';
-import {State} from "../store/reducers/output.reducer";
+import { State } from "../store/reducers/output.reducer";
 
-import {Output} from "../models/output.model";
+import { Output } from "../models/output.model";
 
 
 @Injectable({
@@ -28,7 +28,7 @@ export class OutputService {
   }
 
   addOutput(output: Output): void {
-    this.store.dispatch(actions.addOutput({output}));
+    this.store.dispatch(actions.addOutput({ output }));
   }
 
   changeStatusOutput(changeStatusInformation: any): void {
@@ -41,7 +41,15 @@ export class OutputService {
   }
 
   updateOutputs(outputs: Output[]): void {
-    this.store.dispatch(actions.updateOutputs({outputs}));
+    this.store.dispatch(actions.updateOutputs({ outputs }));
+  }
+
+  clearSavedOutput(): void {
+    this.store.dispatch(actions.updateOutputSuccess({ savedOutput: null as any }));
+  }
+
+  clearChangedStatus(): void {
+    this.store.dispatch(actions.changeStatusOutputSuccess({ changedStatusOutput: null as any }));
   }
 
   selectFoundOutputs(): Observable<Output[]> {
